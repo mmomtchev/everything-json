@@ -2,11 +2,11 @@
 
 An experiment in computer futility
 
-# Background (The IT industry *JSON* problem)
+# Background (The IT industry's *JSON* problem)
 
-Recently, when debugging a small and barely noticeable delay when refreshing website that I manage, I found that it was caused by parsing a relatively big `JSON` file. The rabbit hole ran very deep on that one. I vaguely remembered while working on `gdal-async` some years ago that there was one hugely problematic API call that couldn't be made to work without blocking the event loop - consuming GeoJSON data.
+Recently, when debugging a small and barely noticeable delay when refreshing a website that I manage, I found that it was caused by parsing a relatively big `JSON` file. The rabbit hole ran very deep on that one. I vaguely remembered while working on `gdal-async` some years ago that there was one hugely problematic API call that couldn't be made to work without blocking the event loop - consuming GeoJSON data.
 
-I quickly discovered that I was far from the first one to be confronted with this astonishing issue in modern IT. As I went on exploring the various solutions people had found, I was stunned to find that there was even a SIMD-enabled library that used the AVX instruction set to speed up JSON parsing. As SIMD is definitely not the very first thing that comes to mind when thinking about JSON, I went through various research papers and presentations.
+I quickly discovered that I was far from being the first one to be confronted with this astonishing issue in modern IT. As I went on exploring the various solutions people had found, I was stunned to find that there was even a SIMD-enabled library that used the AVX instruction set to speed up JSON parsing. As SIMD is definitely not the very first thing that comes to mind when thinking about JSON, I went through various research papers and presentations.
 
 *(If you, just like me, are curious about it - there is an AVX instruction that allows to do 32 table lookups at the same time)*
 
@@ -22,7 +22,7 @@ It seems that the problem is very widely recognized, because I was stunned by th
 
 The Node.js version `node-simdjson` is almost always slower than the built-in parser (unless the lazy proxying mode is used - you can read more about it in the package).
 
-It seems also that the problem of user experience delays (or dropped packets on the backend site) has also been recognized because there is also a very interesting JSON implementation by the Node.js core-team called `yieldable-json`. It is a pure JavaScript parser that is about 5 times slower than the built-in parser but it yields the control every 5ms to ensure smooth execution of the whole program.
+It seems also that the problem of the user experiencing delays (or dropped packets on the backend side) has also been recognized because there is also a very interesting JSON implementation by the Node.js core-team called `yieldable-json`. It is a pure JavaScript parser that is about 5 times slower than the built-in parser but it yields the control every 5ms to ensure smooth execution of the whole program.
 
 # `json-async`
 
