@@ -1,0 +1,31 @@
+{
+  "main": "lib/binding.js",
+  "dependencies": {
+    "node-addon-api": "^1.1.0",
+    "simdjson": "^0.9.2",
+    "yieldable-json": "^2.0.1"
+  },
+  "scripts": {
+    "test": "node --napi-modules ./test/test_binding.js"
+  },
+  "gypfile": true,
+  "name": "json-async",
+  "version": "1.0.0",
+  "description": "JSON Async",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mmomtchev/json-async.git"
+  },
+  "keywords": [
+    "node.js",
+    "JSON",
+    "parse",
+    "async"
+  ],
+  "author": "Momtchil Momtchev <momtchil@momtchev.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mmomtchev/json-async/issues"
+  },
+  "homepage": "https://github.com/mmomtchev/json-async#readme"
+}
