@@ -83,52 +83,56 @@ void deleteElementTree(Element *element) {
 // Create the V8 object from the parsed tree
 // Launched on the main thread
 napi_value makeObject(napi_env env, Element *element) {
+  napi_escapable_handle_scope scope;
+  napi_open_escapable_handle_scope(env, &scope);
+  napi_value result;
+
   switch (element->type) {
   case Element::Array: {
     auto v = (CTypeArray *)(*element);
-    napi_value arr;
-    napi_create_array_with_length(env, v->size(), &arr);
+    napi_create_array_with_length(env, v->size(), &result);
     size_t i = 0;
     for (auto el : *v) {
-      napi_set_element(env, arr, i, makeObject(env, el));
+      napi_set_element(env, result, i, makeObject(env, el));
       i++;
     }
-    return arr;
+    break;
   }
   case Element::Object: {
     auto m = (CTypeObject *)(*element);
-    napi_value obj;
-    napi_create_object(env, &obj);
+    napi_create_object(env, &result);
     for (auto field : *m) {
-      napi_set_named_property(env, obj, field->first.c_str(), makeObject(env, field->second));
+      napi_set_named_property(env, result, field->first.c_str(), makeObject(env, field->second));
     }
-    return obj;
+    break;
   }
   case Element::String: {
     auto s = (CTypeString *)(*element);
-    napi_value r;
-    napi_create_string_utf16(env, s->data(), s->length(), &r);
-    return r;
+    napi_create_string_utf16(env, s->data(), s->length(), &result);
+    break;
   }
   case Element::Number: {
     auto n = (double)(*element);
-    napi_value r;
-    napi_create_double(env, n, &r);
-    return r;
+    napi_create_double(env, n, &result);
+    break;
   }
   case Element::Bool: {
     auto b = (bool)(*element);
-    napi_value r;
-    napi_get_boolean(env, b, &r);
-    return r;
+    napi_get_boolean(env, b, &result);
+    break;
   }
   case Element::Null:
     napi_value r;
     napi_get_null(env, &r);
-    return r;
+    break;
+  default:
+    napi_throw_error(env, nullptr, "Internal error: Unexpected JSON type");
+    return napi_value();
   }
-  napi_throw_error(env, nullptr, "Internal error: Unexpected JSON type");
-  return napi_value();
+  napi_value escapee;
+  napi_escape_handle(env, scope, result, &escapee);
+  napi_close_escapable_handle_scope(env, scope);
+  return escapee;
 }
 
 // Create a binary parsed tree with UTF-16 strings
