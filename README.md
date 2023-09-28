@@ -40,10 +40,13 @@ Reading as `utf-8`:
 
 | file read | `JSON` | `node-simdjson` | `yieldable-json` | `json-async` Node-API | `json-async` Raw V8 |
 | --- | --- | --- | --- | --- | --- |
-| 38ms | 92ms | 248ms | 437ms | 207ms foreground + 360ms background | 160ms foreground + 360ms background |
+| 38ms | 92ms | 284ms | 437ms | 207ms foreground + 360ms background | 170ms foreground + 60ms background |
 
 Reading as `Buffer`:
 
 | file read | `JSON` | `node-simdjson` | `yieldable-json` | `json-async` Node-API | `json-async` Raw V8 |
 | --- | --- | --- | --- | --- | --- |
-| 6ms | 127ms | N/A | 495ms | 207ms foreground + 300ms background | 160ms foreground + 300ms background |
+| 6ms | 127ms | N/A | 495ms | 207ms foreground + 300ms background | 170ms foreground + 60ms background |
+
+
+**Alas, the conclusion of the experiment is that there is no background processing possible that will render the foreground processing faster then the speed of the creation of the object on the main thread - where the main speedup vs `node-simdjson` comes from using the V8 bulk insertion primitives.**
