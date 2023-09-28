@@ -38,16 +38,12 @@ Tests on my 8MB JSON file:
 
 Reading as `utf-8`:
 
-| file read | `JSON` | `node-simdjson` | `yieldable-json` | `json-async` |
-| --- | --- | --- | --- | --- |
-| 38ms | 92ms | 248ms | 437ms | 207ms foreground + 360ms background |
+| file read | `JSON` | `node-simdjson` | `yieldable-json` | `json-async` Node-API | `json-async` Raw V8 |
+| --- | --- | --- | --- | --- | --- |
+| 38ms | 92ms | 248ms | 437ms | 207ms foreground + 360ms background | 160ms foreground + 360ms background |
 
 Reading as `Buffer`:
 
-| file read | `JSON` | `node-simdjson` | `yieldable-json` | `json-async` |
-| --- | --- | --- | --- | --- |
-| 6ms | 127ms | N/A | 495ms | 207ms foreground + 300ms background |
-
-
-Currently the conclusion is that the performance bottle-neck is `Node-API` (the author of `node-simdjson` reached the same conclusion), so unless a solution can be found the project remains (somewhat) useless.
-
+| file read | `JSON` | `node-simdjson` | `yieldable-json` | `json-async` Node-API | `json-async` Raw V8 |
+| --- | --- | --- | --- | --- | --- |
+| 6ms | 127ms | N/A | 495ms | 207ms foreground + 300ms background | 160ms foreground + 300ms background |
