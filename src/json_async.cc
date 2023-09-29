@@ -114,11 +114,9 @@ Value JSON::Get(const CallbackInfo &info) {
     return string;
   }
   case dom::element_type::DOUBLE:
-    return Number::New(env, (double)(root));
   case dom::element_type::INT64:
-    return Number::New(env, (int64_t)(root));
   case dom::element_type::UINT64:
-    return Number::New(env, (uint64_t)(root));
+    return Number::New(env, (double)(root));
   case dom::element_type::BOOL:
     return Boolean::New(env, (bool)(root));
   case dom::element_type::NULL_VALUE:
@@ -163,13 +161,9 @@ Value JSON::ToObject(Napi::Env env, const element &root) {
     break;
   }
   case dom::element_type::DOUBLE:
-    result = Number::New(env, (double)(root));
-    break;
   case dom::element_type::INT64:
-    result = Number::New(env, (int64_t)(root));
-    break;
   case dom::element_type::UINT64:
-    result = Number::New(env, (uint64_t)(root));
+    result = Number::New(env, (double)(root));
     break;
   case dom::element_type::BOOL:
     result = Boolean::New(env, (bool)(root));
