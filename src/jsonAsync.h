@@ -4,20 +4,21 @@
 #define SIMDJSON_EXCEPTIONS 1
 #include "simdjson.h"
 #include <chrono>
-#include <fstream>
 #include <functional>
-#include <iostream>
-#include <map>
 #include <napi.h>
+#include <queue>
 #include <string>
+#include <uv.h>
 
 using namespace Napi;
 using namespace simdjson;
 using namespace simdjson::dom;
 using namespace std;
+using namespace chrono;
 
 struct InstanceData {
   FunctionReference JSON_ctor;
+  uv_async_t runQueueJob;
 };
 
 class JSON : public ObjectWrap<JSON> {
@@ -41,6 +42,8 @@ public:
   Napi::Value Get(const CallbackInfo &);
   Napi::Value ToObject(const CallbackInfo &);
   Napi::Value ToObjectAsync(const CallbackInfo &);
+
+  static void ProcessRunQueue(uv_async_t *);
 
   static Function GetClass(Napi::Env env);
 };

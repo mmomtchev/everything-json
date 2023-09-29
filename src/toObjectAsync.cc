@@ -1,5 +1,30 @@
 #include "jsonAsync.h"
 
+struct ToObjectAsyncArgs {
+  Napi::Env env;
+  const element root;
+  const function<void(Napi::Value)> resolve;
+  const function<void(exception_ptr)> reject;
+};
+
+queue<ToObjectAsyncArgs> runQueue;
+
+void JSON::ProcessRunQueue(uv_async_t *handle) {
+  const auto start(high_resolution_clock::now());
+
+  while (!runQueue.empty() && duration_cast<milliseconds>(high_resolution_clock::now() - start).count() < 5) {
+    auto const &args = runQueue.front();
+    ToObjectAsync(args.env, args.root, args.resolve, args.reject);
+    runQueue.pop();
+  }
+
+  if (!runQueue.empty()) {
+    uv_async_send(handle);
+  } else {
+    uv_unref(reinterpret_cast<uv_handle_t *>(handle));
+  }
+}
+
 Value JSON::ToObjectAsync(const CallbackInfo &info) {
   Napi::Env env(info.Env());
   auto deferred = new Promise::Deferred(env);
@@ -39,19 +64,18 @@ void JSON::ToObjectAsync(Napi::Env env, const element &root, const function<void
       *arrayRef = Persistent(array);
       size_t i = 0;
       for (element child : dom::array(root)) {
-        ToObjectAsync(
-            env, child,
-            [remaining, resolve, i, arrayRef](Napi::Value sub) {
-              (*remaining)--;
-              arrayRef->Value().Set(i, sub);
-              if (*remaining == 0) {
-                resolve(arrayRef->Value());
-                arrayRef->Reset();
-                delete arrayRef;
-                delete remaining;
-              }
-            },
-            reject);
+        runQueue.push({env, child,
+                       [remaining, resolve, i, arrayRef](Napi::Value sub) {
+                         (*remaining)--;
+                         arrayRef->Value().Set(i, sub);
+                         if (*remaining == 0) {
+                           resolve(arrayRef->Value());
+                           arrayRef->Reset();
+                           delete arrayRef;
+                           delete remaining;
+                         }
+                       },
+                       reject});
         i++;
       }
       result = array;
@@ -63,19 +87,18 @@ void JSON::ToObjectAsync(Napi::Env env, const element &root, const function<void
       *objectRef = Persistent(object);
       (*remaining) = dom::object(root).size();
       for (auto field : dom::object(root)) {
-        ToObjectAsync(
-            env, field.value,
-            [remaining, resolve, key = field.key.data(), objectRef](Napi::Value sub) {
-              (*remaining)--;
-              objectRef->Value().Set(key, sub);
-              if (*remaining == 0) {
-                resolve(objectRef->Value());
-                objectRef->Reset();
-                delete objectRef;
-                delete remaining;
-              }
-            },
-            reject);
+        runQueue.push({env, field.value,
+                       [remaining, resolve, key = field.key.data(), objectRef](Napi::Value sub) {
+                         (*remaining)--;
+                         objectRef->Value().Set(key, sub);
+                         if (*remaining == 0) {
+                           resolve(objectRef->Value());
+                           objectRef->Reset();
+                           delete objectRef;
+                           delete remaining;
+                         }
+                       },
+                       reject});
       }
       result = object;
       break;
@@ -100,5 +123,11 @@ void JSON::ToObjectAsync(Napi::Env env, const element &root, const function<void
     }
   } catch (...) {
     reject(current_exception());
+  }
+
+  if (!runQueue.empty()) {
+    auto instance = env.GetInstanceData<InstanceData>();
+    uv_async_send(&instance->runQueueJob);
+    uv_ref(reinterpret_cast<uv_handle_t *>(&instance->runQueueJob));
   }
 }

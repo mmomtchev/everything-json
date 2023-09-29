@@ -65,4 +65,4 @@ In async mode, the initial parse does not incur any event loop latency.
 
 Drilling down the document with `get()` is very low-latency too.
 
-`toObjectAsync()` (will) be similar to `yieldable-json` with about 2x the performance. It still loads the main thread, but it (will) yield the CPU every `x` ms (configurable value).
+`toObjectAsync()` is similar to `yieldable-json`. It still loads the main thread, but it will yield the CPU every 5ms.
