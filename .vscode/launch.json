@@ -10,8 +10,7 @@
       "request": "launch",
       "program": "/usr/bin/node",
       "args": [
-        "test/test.js",
-        "../scdb/public/data/3.20.0-8717119/items.json"
+        "node_modules/mocha/lib/cli/cli.js",
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
@@ -30,7 +29,32 @@
               "ignoreFailures": true
           }
       ]
+    },
+    {
+      "name": "(gdb) run.js",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "/usr/bin/node",
+      "args": [
+        "run.js",
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        },
+        {
+          "description": "Set Disassembly Flavor to Intel",
+          "text": "-gdb-set disassembly-flavor intel",
+          "ignoreFailures": true
+        }
+      ]
     }
-
   ]
 }

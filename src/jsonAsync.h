@@ -5,6 +5,7 @@
 #include "simdjson.h"
 #include <chrono>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <map>
 #include <napi.h>
@@ -14,7 +15,6 @@ using namespace Napi;
 using namespace simdjson;
 using namespace simdjson::dom;
 using namespace std;
-using namespace std::chrono;
 
 struct InstanceData {
   FunctionReference JSON_ctor;
@@ -29,7 +29,8 @@ class JSON : public ObjectWrap<JSON> {
   element root;
 
   static Napi::Value ToObject(Napi::Env, const element &);
-  static Napi::Value ToObjectAsync(Napi::Env, const element &, size_t &remaining);
+  static void ToObjectAsync(Napi::Env, const element &, std::function<void(Napi::Value)>,
+                            std::function<void(exception_ptr)>);
 
 public:
   JSON(const CallbackInfo &);

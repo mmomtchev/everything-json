@@ -35,4 +35,16 @@ describe('GeoJSON', () => {
       })
       .catch(done);
   });
+
+  it.only('toObjectAsync()', function(done) {
+    fs.promises.readFile(path.resolve(__dirname, 'data', 'canada.json'), 'utf8')
+      .then((data) => JSON.parseAsync(data))
+      .then((document) => document.toObjectAsync())
+      .then((object) => {
+        assert.isObject(object);
+        assert.sameMembers(Object.keys(object), ['type', 'features']);
+        done();
+      })
+      .catch(done);
+  });
 });
