@@ -32,19 +32,25 @@ void JSON::ProcessRunQueue(uv_async_t *handle) {
 Value JSON::ToObjectAsync(const CallbackInfo &info) {
   Napi::Env env(info.Env());
   auto deferred = new Promise::Deferred(env);
+  auto persistent = new Reference<Napi::Value>();
+  *persistent = Persistent(info.This());
 
   ToObjectAsync(
       info.Env(), root,
-      [deferred](Napi::Value element) {
+      [persistent, deferred](Napi::Value element) {
         deferred->Resolve(element);
+        persistent->Reset();
+        delete persistent;
         delete deferred;
       },
-      [deferred, env](exception_ptr err) {
+      [persistent, deferred, env](exception_ptr err) {
         try {
           rethrow_exception(err);
         } catch (const exception &e) {
           deferred->Reject(Error::New(env, e.what()).Value());
         }
+        persistent->Reset();
+        delete persistent;
         delete deferred;
       },
       high_resolution_clock::now());
