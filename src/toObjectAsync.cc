@@ -9,12 +9,16 @@ struct ToObjectAsyncArgs {
 
 queue<ToObjectAsyncArgs> runQueue;
 
+static inline bool CanRun(const high_resolution_clock::time_point &start) {
+  return duration_cast<milliseconds>(high_resolution_clock::now() - start).count() < 5;
+}
+
 void JSON::ProcessRunQueue(uv_async_t *handle) {
   const auto start(high_resolution_clock::now());
 
-  while (!runQueue.empty() && duration_cast<milliseconds>(high_resolution_clock::now() - start).count() < 5) {
+  while (!runQueue.empty() && CanRun(start)) {
     auto const &args = runQueue.front();
-    ToObjectAsync(args.env, args.root, args.resolve, args.reject);
+    ToObjectAsync(args.env, args.root, args.resolve, args.reject, start);
     runQueue.pop();
   }
 
@@ -42,13 +46,14 @@ Value JSON::ToObjectAsync(const CallbackInfo &info) {
           deferred->Reject(Error::New(env, e.what()).Value());
         }
         delete deferred;
-      });
+      },
+      high_resolution_clock::now());
 
   return deferred->Promise();
 }
 
 void JSON::ToObjectAsync(Napi::Env env, const element &root, const function<void(Napi::Value)> resolve,
-                         const function<void(exception_ptr)> reject) {
+                         const function<void(exception_ptr)> reject, high_resolution_clock::time_point start) {
   HandleScope scope(env);
   Napi::Value result;
   auto remaining = new size_t;
@@ -64,18 +69,50 @@ void JSON::ToObjectAsync(Napi::Env env, const element &root, const function<void
       *arrayRef = Persistent(array);
       size_t i = 0;
       for (element child : dom::array(root)) {
-        runQueue.push({env, child,
-                       [remaining, resolve, i, arrayRef](Napi::Value sub) {
-                         (*remaining)--;
-                         arrayRef->Value().Set(i, sub);
-                         if (*remaining == 0) {
-                           resolve(arrayRef->Value());
-                           arrayRef->Reset();
-                           delete arrayRef;
-                           delete remaining;
-                         }
-                       },
-                       reject});
+        if (CanRun(start)) {
+          ToObjectAsync(
+              env, child,
+              [remaining, resolve, i, arrayRef](Napi::Value sub) {
+                (*remaining)--;
+                arrayRef->Value().Set(i, sub);
+                if (*remaining == 0) {
+                  resolve(arrayRef->Value());
+                  arrayRef->Reset();
+                  delete arrayRef;
+                  delete remaining;
+                }
+              },
+              reject, start);
+        } else {
+          if (CanRun(start)) {
+            ToObjectAsync(
+                env, child,
+                [remaining, resolve, i, arrayRef](Napi::Value sub) {
+                  (*remaining)--;
+                  arrayRef->Value().Set(i, sub);
+                  if (*remaining == 0) {
+                    resolve(arrayRef->Value());
+                    arrayRef->Reset();
+                    delete arrayRef;
+                    delete remaining;
+                  }
+                },
+                reject, start);
+          } else {
+            runQueue.push({env, child,
+                           [remaining, resolve, i, arrayRef](Napi::Value sub) {
+                             (*remaining)--;
+                             arrayRef->Value().Set(i, sub);
+                             if (*remaining == 0) {
+                               resolve(arrayRef->Value());
+                               arrayRef->Reset();
+                               delete arrayRef;
+                               delete remaining;
+                             }
+                           },
+                           reject});
+          }
+        }
         i++;
       }
       result = array;

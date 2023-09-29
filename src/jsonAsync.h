@@ -31,7 +31,7 @@ class JSON : public ObjectWrap<JSON> {
 
   static Napi::Value ToObject(Napi::Env, const element &);
   static void ToObjectAsync(Napi::Env, const element &, const function<void(Napi::Value)>,
-                            const function<void(exception_ptr)>);
+                            const function<void(exception_ptr)>, high_resolution_clock::time_point);
 
 public:
   JSON(const CallbackInfo &);
