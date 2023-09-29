@@ -26,7 +26,7 @@ class JSON : public ObjectWrap<JSON> {
   // The root of this subvalue
   element root;
 
-  Napi::Value Sub(element *sub);
+  static Napi::Value ToObject(Napi::Env, const element &);
 
 public:
   JSON(const CallbackInfo &);
@@ -34,6 +34,7 @@ public:
 
   static Napi::Value Parse(const CallbackInfo &);
   Napi::Value Get(const CallbackInfo &);
+  Napi::Value ToObject(const CallbackInfo &);
 
   static Function GetClass(Napi::Env env);
 };
@@ -127,10 +128,66 @@ Value JSON::Get(const CallbackInfo &info) {
   throw Error::New(env, "Invalid JSON element");
 }
 
+Value JSON::ToObject(const CallbackInfo &info) {
+  return ToObject(info.Env(), root);
+}
+
+Value JSON::ToObject(Napi::Env env, const element &root) {
+  EscapableHandleScope scope(env);
+  Napi::Value result;
+
+  switch (root.type()) {
+  case dom::element_type::ARRAY: {
+    size_t len = dom::array(root).size();
+    auto array = Array::New(env, len);
+    size_t i = 0;
+    for (dom::element child : dom::array(root)) {
+      Napi::Value sub = ToObject(env, child);
+      array.Set(i, sub);
+      i++;
+    }
+    result = array;
+    break;
+  }
+  case dom::element_type::OBJECT: {
+    auto object = Object::New(env);
+    for (auto field : dom::object(root)) {
+      Napi::Value sub = ToObject(env, field.value);
+      object.Set(field.key.data(), sub);
+    }
+    result = object;
+    break;
+  }
+  case dom::element_type::STRING: {
+    result = String::New(env, root.get_c_str());
+    break;
+  }
+  case dom::element_type::DOUBLE:
+    result = Number::New(env, (double)(root));
+    break;
+  case dom::element_type::INT64:
+    result = Number::New(env, (int64_t)(root));
+    break;
+  case dom::element_type::UINT64:
+    result = Number::New(env, (uint64_t)(root));
+    break;
+  case dom::element_type::BOOL:
+    result = Boolean::New(env, (bool)(root));
+    break;
+  case dom::element_type::NULL_VALUE:
+    result = env.Null();
+    break;
+  default:
+    throw Error::New(env, "Invalid JSON element");
+  }
+  return scope.Escape(result);
+}
+
 Function JSON::GetClass(Napi::Env env) {
   return DefineClass(env, "JSON",
                      {
                          JSON::InstanceMethod("get", &JSON::Get),
+                         JSON::InstanceMethod("toObject", &JSON::ToObject),
                          JSON::StaticMethod("parse", &JSON::Parse),
                      });
 }
