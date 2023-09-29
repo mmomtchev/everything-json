@@ -33,6 +33,7 @@ public:
   virtual ~JSON();
 
   static Napi::Value Parse(const CallbackInfo &);
+  static Napi::Value ParseAsync(const CallbackInfo &);
   Napi::Value Get(const CallbackInfo &);
   Napi::Value ToObject(const CallbackInfo &);
 
@@ -66,11 +67,53 @@ Value JSON::Parse(const CallbackInfo &info) {
 
   auto parser_ = make_shared<parser>();
   auto document = make_shared<element>(dom::element(parser_->parse(info[0].ToString().Utf8Value())));
-  std::vector<napi_value> ctor_args = {External<shared_ptr<parser>>::New(env, &parser_),
-                                        External<shared_ptr<element>>::New(env, &document),
-                                        External<element>::New(env, document.get())};
+  vector<napi_value> ctor_args = {External<shared_ptr<parser>>::New(env, &parser_),
+                                  External<shared_ptr<element>>::New(env, &document),
+                                  External<element>::New(env, document.get())};
 
   return instance->JSON_ctor.Value().New(ctor_args);
+}
+
+Value JSON::ParseAsync(const CallbackInfo &info) {
+  class ParserAsyncWorker : public AsyncWorker {
+    Promise::Deferred deferred;
+    string json_text;
+    shared_ptr<parser> parser_;
+    shared_ptr<element> document;
+
+  public:
+    ParserAsyncWorker(Napi::Env env, const string &&text)
+        : AsyncWorker(env, "JSONAsyncWorker"), deferred(env), json_text(move(text)) {}
+    virtual void Execute() override {
+      parser_ = make_shared<parser>();
+      document = make_shared<element>(dom::element(parser_->parse(json_text)));
+    }
+    virtual void OnOK() override {
+      Napi::Env env = Env();
+      auto instance = env.GetInstanceData<InstanceData>();
+      vector<napi_value> ctor_args = {External<shared_ptr<parser>>::New(env, &parser_),
+                                      External<shared_ptr<element>>::New(env, &document),
+                                      External<element>::New(env, document.get())};
+      Napi::Value result = instance->JSON_ctor.Value().New(ctor_args);
+      deferred.Resolve(result);
+    }
+    virtual void OnError(const Napi::Error &e) override { deferred.Reject(e.Value()); }
+    Promise GetPromise() { return deferred.Promise(); }
+  };
+
+  Napi::Env env(info.Env());
+
+  if (info.Length() != 1 || !info[0].IsString()) {
+    auto deferred = Promise::Deferred::New(env);
+    deferred.Reject(Error::New(env, "JSON.Parse expects a single string argument").Value());
+    return deferred.Promise();
+  }
+
+  string json_text(info[0].ToString().Utf8Value());
+  auto worker = new ParserAsyncWorker(env, move(json_text));
+
+  worker->Queue();
+  return worker->GetPromise();
 }
 
 Value JSON::Get(const CallbackInfo &info) {
@@ -82,9 +125,8 @@ Value JSON::Get(const CallbackInfo &info) {
     size_t len = dom::array(root).size();
     auto array = Array::New(env, len);
 
-    std::vector<napi_value> ctor_args = {External<shared_ptr<parser>>::New(env, &parser_),
-                                          External<shared_ptr<element>>::New(env, &document),
-                                          Value()};
+    vector<napi_value> ctor_args = {External<shared_ptr<parser>>::New(env, &parser_),
+                                    External<shared_ptr<element>>::New(env, &document), Value()};
 
     size_t i = 0;
     for (dom::element child : dom::array(root)) {
@@ -98,9 +140,8 @@ Value JSON::Get(const CallbackInfo &info) {
   case dom::element_type::OBJECT: {
     auto object = Object::New(env);
 
-    std::vector<napi_value> ctor_args = {External<shared_ptr<parser>>::New(env, &parser_),
-                                          External<shared_ptr<element>>::New(env, &document),
-                                          Value()};
+    vector<napi_value> ctor_args = {External<shared_ptr<parser>>::New(env, &parser_),
+                                    External<shared_ptr<element>>::New(env, &document), Value()};
 
     for (auto field : dom::object(root)) {
       ctor_args[2] = External<element>::New(env, &field.value);
@@ -126,9 +167,7 @@ Value JSON::Get(const CallbackInfo &info) {
   throw Error::New(env, "Invalid JSON element");
 }
 
-Value JSON::ToObject(const CallbackInfo &info) {
-  return ToObject(info.Env(), root);
-}
+Value JSON::ToObject(const CallbackInfo &info) { return ToObject(info.Env(), root); }
 
 Value JSON::ToObject(Napi::Env env, const element &root) {
   EscapableHandleScope scope(env);
@@ -183,6 +222,7 @@ Function JSON::GetClass(Napi::Env env) {
                          JSON::InstanceMethod("get", &JSON::Get),
                          JSON::InstanceMethod("toObject", &JSON::ToObject),
                          JSON::StaticMethod("parse", &JSON::Parse),
+                         JSON::StaticMethod("parseAsync", &JSON::ParseAsync),
                      });
 }
 

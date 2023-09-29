@@ -22,4 +22,17 @@ describe('GeoJSON', () => {
     assert.isArray(coords[4]);
     assert.isNumber(coords[4][1]);
   });
+
+  it('parseAsync()', (done) => {
+    fs.promises.readFile(path.resolve(__dirname, 'data', 'canada.json'), 'utf8')
+      .then((data) => JSON.parseAsync(data))
+      .then((document) => {
+        assert.isObject(document.get());
+        assert.sameMembers(Object.keys(document.get()), ['type', 'features']);
+        const features = document.get().features.get();
+        assert.isArray(features);
+        done();
+      })
+      .catch(done);
+  });
 });
