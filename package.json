@@ -1,7 +1,7 @@
 {
   "main": "lib/binding.js",
   "dependencies": {
-    "node-addon-api": "^1.1.0",
+    "node-addon-api": "^7.0.0",
     "simdjson": "^0.9.2",
     "yieldable-json": "^2.0.1"
   },

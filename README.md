@@ -26,27 +26,11 @@ It seems also that the problem of the user experiencing delays (or dropped packe
 
 # `json-async`
 
-This project is an ongoing experiment that tries to combine the best of both worlds at the price of omitting browser support:
+This project is an ongoing experiment that tries an alternative approach:
 
+PROS
 * A very fast JSON parser (`simdjson`)
-* An asynchronous implementation optimized for JavaScript that does as much as possible in the background before constructing the object on the main thread
-* The option to yield the CPU every `x`ms
+* Completely asynchronous initial parsing (close to 0ms)
 
-# Current status
-
-Tests on my 8MB JSON file:
-
-Reading as `utf-8`:
-
-| file read | `JSON` | `node-simdjson` | `yieldable-json` | `json-async` Node-API | `json-async` Raw V8 |
-| --- | --- | --- | --- | --- | --- |
-| 38ms | 92ms | 284ms | 437ms | 207ms foreground + 360ms background | 170ms foreground + 60ms background |
-
-Reading as `Buffer`:
-
-| file read | `JSON` | `node-simdjson` | `yieldable-json` | `json-async` Node-API | `json-async` Raw V8 |
-| --- | --- | --- | --- | --- | --- |
-| 6ms | 127ms | N/A | 495ms | 207ms foreground + 300ms background | 170ms foreground + 60ms background |
-
-
-**Alas, the conclusion of the experiment is that there is no background processing possible that will render the foreground processing faster then the speed of the creation of the object on the main thread - where the main speedup vs `node-simdjson` comes from using the V8 bulk insertion primitives.**
+CONS
+* Does not use a native JavaScript object, must call `get()` to get fields
