@@ -29,8 +29,8 @@ class JSON : public ObjectWrap<JSON> {
   element root;
 
   static Napi::Value ToObject(Napi::Env, const element &);
-  static void ToObjectAsync(Napi::Env, const element &, std::function<void(Napi::Value)>,
-                            std::function<void(exception_ptr)>);
+  static void ToObjectAsync(Napi::Env, const element &, const function<void(Napi::Value)>,
+                            const function<void(exception_ptr)>);
 
 public:
   JSON(const CallbackInfo &);

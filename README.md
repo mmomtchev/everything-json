@@ -34,3 +34,35 @@ PROS
 
 CONS
 * Does not use a native JavaScript object, must call `get()` to get fields
+
+# Usage
+
+## Sync mode
+
+Sync mode is generally just a little bit faster than the built-in parser but it gets better with very large files and especially on AVX512 CPUs:
+
+```js
+const { JSON } = require('.');
+const fs = require('fs');
+
+const document = JSON.parse(fs.readFileSync('test/data/canada.json', 'utf8'));
+console.log(document.get()['features'].get()[0].get()['geometry'].get()['coordinates'].get()[10].toObject());
+```
+
+Drilling down the document with `.get()` returns a single indirection level converted to JavaScript - array of `JSON` elements, object of `JSON` elements or primitive values. It is almost free of event loop latency. Using `.toObject()` converts the remaining subtree to JavaScript - which can incur an event loop latency if the tree is large.
+
+## Async mode
+
+```js
+const { JSON } = require('.');
+const fs = require('fs');
+
+const document = await JSON.parseAsync(await fs.promises.readFile('test/data/canada.json', 'utf8'));
+console.log(await document.get()['features'].get()[0].get()['geometry'].get()['coordinates'].get()[10].toObjectAsync());
+```
+
+In async mode, the initial parse does not incur any event loop latency.
+
+Drilling down the document with `get()` is very low-latency too.
+
+`toObjectAsync()` (will) be similar to `yieldable-json` with about 2x the performance. It still loads the main thread, but it (will) yield the CPU every `x` ms (configurable value).

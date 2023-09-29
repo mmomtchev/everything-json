@@ -4,24 +4,26 @@ Value JSON::ToObjectAsync(const CallbackInfo &info) {
   Napi::Env env(info.Env());
   auto deferred = new Promise::Deferred(env);
 
-  ToObjectAsync(info.Env(), root, [deferred](Napi::Value element) {
-    deferred->Resolve(element);
-    delete deferred;
-  },
-  [deferred, env](exception_ptr err) {
-    try {
-      rethrow_exception(err);
-    } catch (const exception &e) {
-      deferred->Reject(Error::New(env, e.what()).Value());
-    }
-    delete deferred;
-  });
+  ToObjectAsync(
+      info.Env(), root,
+      [deferred](Napi::Value element) {
+        deferred->Resolve(element);
+        delete deferred;
+      },
+      [deferred, env](exception_ptr err) {
+        try {
+          rethrow_exception(err);
+        } catch (const exception &e) {
+          deferred->Reject(Error::New(env, e.what()).Value());
+        }
+        delete deferred;
+      });
 
   return deferred->Promise();
 }
 
-void JSON::ToObjectAsync(Napi::Env env, const element &root, std::function<void(Napi::Value)> resolve,
-                         std::function<void(exception_ptr)> reject) {
+void JSON::ToObjectAsync(Napi::Env env, const element &root, const function<void(Napi::Value)> resolve,
+                         const function<void(exception_ptr)> reject) {
   HandleScope scope(env);
   Napi::Value result;
   auto remaining = new size_t;
@@ -37,12 +39,10 @@ void JSON::ToObjectAsync(Napi::Env env, const element &root, std::function<void(
       *arrayRef = Persistent(array);
       size_t i = 0;
       for (element child : dom::array(root)) {
-        //printf("Start array element (%lu)\n", *remaining);
         ToObjectAsync(
             env, child,
             [remaining, resolve, i, arrayRef](Napi::Value sub) {
               (*remaining)--;
-              //printf("End array element (%lu)\n", *remaining);
               arrayRef->Value().Set(i, sub);
               if (*remaining == 0) {
                 resolve(arrayRef->Value());
@@ -63,12 +63,10 @@ void JSON::ToObjectAsync(Napi::Env env, const element &root, std::function<void(
       *objectRef = Persistent(object);
       (*remaining) = dom::object(root).size();
       for (auto field : dom::object(root)) {
-        //printf("Start object element (%lu)\n", *remaining);
         ToObjectAsync(
             env, field.value,
             [remaining, resolve, key = field.key.data(), objectRef](Napi::Value sub) {
               (*remaining)--;
-              //printf("End object element (%lu)\n", *remaining);
               objectRef->Value().Set(key, sub);
               if (*remaining == 0) {
                 resolve(objectRef->Value());
