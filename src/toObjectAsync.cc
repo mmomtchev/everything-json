@@ -56,13 +56,12 @@ void JSON::ToObjectAsync(Napi::Env env, const element &root, const function<void
                          const function<void(exception_ptr)> reject, high_resolution_clock::time_point start) {
   HandleScope scope(env);
   Napi::Value result;
-  auto remaining = new size_t;
-  *remaining = 0;
 
   try {
     switch (root.type()) {
     case element_type::ARRAY: {
       size_t len = dom::array(root).size();
+      auto remaining = new size_t;
       (*remaining) = len;
       auto array = Array::New(env, len);
       auto arrayRef = new Reference<Array>();
@@ -106,6 +105,7 @@ void JSON::ToObjectAsync(Napi::Env env, const element &root, const function<void
       auto object = Object::New(env);
       auto objectRef = new ObjectReference();
       *objectRef = Persistent(object);
+      auto remaining = new size_t;
       (*remaining) = dom::object(root).size();
       for (auto field : dom::object(root)) {
         if (CanRun(start)) {

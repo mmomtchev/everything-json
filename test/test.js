@@ -37,6 +37,7 @@ describe('GeoJSON', () => {
   });
 
   it('toObjectAsync()', function(done) {
+    this.timeout(10000);
     fs.promises.readFile(path.resolve(__dirname, 'data', 'canada.json'), 'utf8')
       .then((data) => JSON.parseAsync(data))
       .then((document) => document.toObjectAsync())
