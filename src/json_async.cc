@@ -90,6 +90,7 @@ Value JSON::Get(const CallbackInfo &info) {
       ctor_args[2] = External<element>::New(env, &child);
       Napi::Value sub = instance->JSON_ctor.Value().New(ctor_args);
       array.Set(i, sub);
+      i++;
     }
     return array;
   }
