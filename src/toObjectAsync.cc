@@ -84,34 +84,18 @@ void JSON::ToObjectAsync(Napi::Env env, const element &root, const function<void
               },
               reject, start);
         } else {
-          if (CanRun(start)) {
-            ToObjectAsync(
-                env, child,
-                [remaining, resolve, i, arrayRef](Napi::Value sub) {
-                  (*remaining)--;
-                  arrayRef->Value().Set(i, sub);
-                  if (*remaining == 0) {
-                    resolve(arrayRef->Value());
-                    arrayRef->Reset();
-                    delete arrayRef;
-                    delete remaining;
-                  }
-                },
-                reject, start);
-          } else {
-            runQueue.push({env, child,
-                           [remaining, resolve, i, arrayRef](Napi::Value sub) {
-                             (*remaining)--;
-                             arrayRef->Value().Set(i, sub);
-                             if (*remaining == 0) {
-                               resolve(arrayRef->Value());
-                               arrayRef->Reset();
-                               delete arrayRef;
-                               delete remaining;
-                             }
-                           },
-                           reject});
-          }
+          runQueue.push({env, child,
+                         [remaining, resolve, i, arrayRef](Napi::Value sub) {
+                           (*remaining)--;
+                           arrayRef->Value().Set(i, sub);
+                           if (*remaining == 0) {
+                             resolve(arrayRef->Value());
+                             arrayRef->Reset();
+                             delete arrayRef;
+                             delete remaining;
+                           }
+                         },
+                         reject});
         }
         i++;
       }
@@ -124,18 +108,34 @@ void JSON::ToObjectAsync(Napi::Env env, const element &root, const function<void
       *objectRef = Persistent(object);
       (*remaining) = dom::object(root).size();
       for (auto field : dom::object(root)) {
-        runQueue.push({env, field.value,
-                       [remaining, resolve, key = field.key.data(), objectRef](Napi::Value sub) {
-                         (*remaining)--;
-                         objectRef->Value().Set(key, sub);
-                         if (*remaining == 0) {
-                           resolve(objectRef->Value());
-                           objectRef->Reset();
-                           delete objectRef;
-                           delete remaining;
-                         }
-                       },
-                       reject});
+        if (CanRun(start)) {
+          ToObjectAsync(
+              env, field.value,
+              [remaining, resolve, key = field.key.data(), objectRef](Napi::Value sub) {
+                (*remaining)--;
+                objectRef->Value().Set(key, sub);
+                if (*remaining == 0) {
+                  resolve(objectRef->Value());
+                  objectRef->Reset();
+                  delete objectRef;
+                  delete remaining;
+                }
+              },
+              reject, start);
+        } else {
+          runQueue.push({env, field.value,
+                         [remaining, resolve, key = field.key.data(), objectRef](Napi::Value sub) {
+                           (*remaining)--;
+                           objectRef->Value().Set(key, sub);
+                           if (*remaining == 0) {
+                             resolve(objectRef->Value());
+                             objectRef->Reset();
+                             delete objectRef;
+                             delete remaining;
+                           }
+                         },
+                         reject});
+        }
       }
       result = object;
       break;
