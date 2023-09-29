@@ -26,7 +26,7 @@ It seems also that the problem of the user experiencing delays (or dropped packe
 
 # `json-async`
 
-This project is an ongoing experiment that tries an alternative approach:
+This project tries an alternative approach:
 
 PROS
 * A very fast JSON parser (`simdjson`)
