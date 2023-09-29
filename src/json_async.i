@@ -1,2 +1,0 @@
-%module json_async
-

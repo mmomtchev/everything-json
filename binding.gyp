@@ -2,9 +2,18 @@
   'targets': [
     {
       'target_name': 'json-async-native',
-      'sources': [ 'src/json_async.cc', 'deps/simdjson.cpp' ],
-      'include_dirs': ["<!@(node -p \"require('node-addon-api').include\")", "<(module_root_dir)/deps"],
-      'dependencies': ["<!(node -p \"require('node-addon-api').gyp\")"],
+      'sources': [
+        'deps/simdjson.cpp',
+        'src/main.cc',
+        'src/JSON.cc',
+        'src/parseAsync.cc',
+        'src/toObjectAsync.cc'
+      ],
+      'include_dirs': [
+        "<!@(node -p \"require('node-addon-api').include\")",
+        "<(module_root_dir)/deps"
+      ],
+      'dependencies': [ "<!(node -p \"require('node-addon-api').gyp\")" ],
       'cflags': [ '-g' ],
       'cflags!': [ '-fno-exceptions' ],
       'cflags_cc!': [ '-fno-exceptions' ],
