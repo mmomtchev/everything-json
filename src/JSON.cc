@@ -1,5 +1,6 @@
 #include "jsonAsync.h"
 
+high_resolution_clock::time_point start;
 JSON::JSON(const CallbackInfo &info) : ObjectWrap<JSON>(info) {
   Napi::Env env(info.Env());
 
@@ -11,6 +12,7 @@ JSON::JSON(const CallbackInfo &info) : ObjectWrap<JSON>(info) {
   parser_ = *info[0].As<External<shared_ptr<parser>>>().Data();
   document = *info[1].As<External<shared_ptr<element>>>().Data();
   root = *info[2].As<External<element>>().Data();
+  //cout << "time1 " << duration_cast<microseconds>(high_resolution_clock::now() - start).count() << endl;
 }
 
 JSON::~JSON() {}
@@ -24,12 +26,17 @@ Value JSON::Parse(const CallbackInfo &info) {
   }
 
   auto parser_ = make_shared<parser>();
-  auto document = make_shared<element>(element(parser_->parse(info[0].ToString().Utf8Value())));
+  string json = info[0].ToString().Utf8Value();
+  auto document = make_shared<element>(parser_->parse(json));
+
   vector<napi_value> ctor_args = {External<shared_ptr<parser>>::New(env, &parser_),
                                   External<shared_ptr<element>>::New(env, &document),
                                   External<element>::New(env, document.get())};
 
-  return instance->JSON_ctor.Value().New(ctor_args);
+  //start = high_resolution_clock::now();
+  auto r = instance->JSON_ctor.Value().New(ctor_args);
+  //cout << "time2 " << duration_cast<microseconds>(high_resolution_clock::now() - start).count() << endl;
+  return r;
 }
 
 Value JSON::Get(const CallbackInfo &info) {
