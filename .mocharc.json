@@ -1,0 +1,6 @@
+{
+  "require": [
+    "./test/mocha.init.js"
+  ],
+  "v8-expose-gc": true
+}
