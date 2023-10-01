@@ -21,14 +21,19 @@ struct InstanceData {
   uv_async_t runQueueJob;
 };
 
-class JSON : public ObjectWrap<JSON> {
+struct JSONElementContext {
+  // The input string
+  shared_ptr<padded_string> input_text;
+
   // The containing document
   shared_ptr<parser> parser_;
   shared_ptr<element> document;
 
   // The root of this subvalue
   element root;
+};
 
+class JSON : public ObjectWrap<JSON>, JSONElementContext {
   static Napi::Value ToObject(Napi::Env, const element &);
   static void ToObjectAsync(Napi::Env, const element &, const function<void(Napi::Value)>,
                             const function<void(exception_ptr)>, high_resolution_clock::time_point);

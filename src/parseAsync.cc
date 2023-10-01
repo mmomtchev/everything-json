@@ -3,24 +3,23 @@
 Value JSON::ParseAsync(const CallbackInfo &info) {
   class ParserAsyncWorker : public AsyncWorker {
     Promise::Deferred deferred;
-    string json_text;
+    shared_ptr<padded_string> json_text;
     shared_ptr<parser> parser_;
     shared_ptr<element> document;
 
   public:
-    ParserAsyncWorker(Napi::Env env, const string &&text)
-        : AsyncWorker(env, "JSONAsyncWorker"), deferred(env), json_text(move(text)) {}
+    ParserAsyncWorker(Napi::Env env, shared_ptr<padded_string> text)
+        : AsyncWorker(env, "JSONAsyncWorker"), deferred(env), json_text(text) {}
     virtual void Execute() override {
       parser_ = make_shared<parser>();
-      document = make_shared<element>(element(parser_->parse(json_text)));
+      document = make_shared<element>(element(parser_->parse(*json_text)));
     }
     virtual void OnOK() override {
       Napi::Env env = Env();
       auto instance = env.GetInstanceData<InstanceData>();
-      vector<napi_value> ctor_args = {External<shared_ptr<parser>>::New(env, &parser_),
-                                      External<shared_ptr<element>>::New(env, &document),
-                                      External<element>::New(env, document.get())};
-      Napi::Value result = instance->JSON_ctor.Value().New(ctor_args);
+      JSONElementContext context{.input_text = json_text, .parser_ = parser_, .document = document, .root = *document.get()};
+      napi_value ctor_args = External<JSONElementContext>::New(env, &context);
+      auto result = instance->JSON_ctor.Value().New(1, &ctor_args);
       deferred.Resolve(result);
     }
     virtual void OnError(const Napi::Error &e) override { deferred.Reject(e.Value()); }
@@ -35,8 +34,8 @@ Value JSON::ParseAsync(const CallbackInfo &info) {
     return deferred.Promise();
   }
 
-  string json_text(info[0].ToString().Utf8Value());
-  auto worker = new ParserAsyncWorker(env, move(json_text));
+  auto json_text = make_shared<padded_string>(info[0].ToString().Utf8Value());
+  auto worker = new ParserAsyncWorker(env, json_text);
 
   worker->Queue();
   return worker->GetPromise();

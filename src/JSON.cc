@@ -1,18 +1,18 @@
 #include "jsonAsync.h"
 
-high_resolution_clock::time_point start;
 JSON::JSON(const CallbackInfo &info) : ObjectWrap<JSON>(info) {
   Napi::Env env(info.Env());
 
-  if (info.Length() != 3 || !info[0].IsExternal() || !info[1].IsExternal() || !info[2].IsExternal()) {
+  if (info.Length() != 1 || !info[0].IsExternal()) {
     throw Napi::Error::New(
         env, "JSON constructor cannot be called from JavaScript, use JSON.parse[Async] to parse a string");
   }
 
-  parser_ = *info[0].As<External<shared_ptr<parser>>>().Data();
-  document = *info[1].As<External<shared_ptr<element>>>().Data();
-  root = *info[2].As<External<element>>().Data();
-  //cout << "time1 " << duration_cast<microseconds>(high_resolution_clock::now() - start).count() << endl;
+  auto context = info[0].As<External<JSONElementContext>>().Data();
+  input_text = context->input_text;
+  parser_ = context->parser_;
+  document = context->document;
+  root = context->root;
 }
 
 JSON::~JSON() {}
@@ -26,16 +26,13 @@ Value JSON::Parse(const CallbackInfo &info) {
   }
 
   auto parser_ = make_shared<parser>();
-  string json = info[0].ToString().Utf8Value();
-  auto document = make_shared<element>(parser_->parse(json));
+  auto json = shared_ptr<padded_string>(new padded_string(info[0].ToString().Utf8Value()));
+  auto document = make_shared<element>(parser_->parse(*json));
 
-  vector<napi_value> ctor_args = {External<shared_ptr<parser>>::New(env, &parser_),
-                                  External<shared_ptr<element>>::New(env, &document),
-                                  External<element>::New(env, document.get())};
+  JSONElementContext context{.input_text = json, .parser_ = parser_, .document = document, .root = *document.get()};
 
-  //start = high_resolution_clock::now();
-  auto r = instance->JSON_ctor.Value().New(ctor_args);
-  //cout << "time2 " << duration_cast<microseconds>(high_resolution_clock::now() - start).count() << endl;
+  napi_value ctor_args = External<JSONElementContext>::New(env, &context);
+  auto r = instance->JSON_ctor.Value().New(1, &ctor_args);
   return r;
 }
 
@@ -48,13 +45,13 @@ Value JSON::Get(const CallbackInfo &info) {
     size_t len = dom::array(root).size();
     auto array = Array::New(env, len);
 
-    vector<napi_value> ctor_args = {External<shared_ptr<parser>>::New(env, &parser_),
-                                    External<shared_ptr<element>>::New(env, &document), Value()};
+    JSONElementContext context(*this);
+    napi_value ctor_args = External<JSONElementContext>::New(env, &context);
 
     size_t i = 0;
     for (element child : dom::array(root)) {
-      ctor_args[2] = External<element>::New(env, &child);
-      Napi::Value sub = instance->JSON_ctor.Value().New(ctor_args);
+      context.root = child;
+      auto sub = instance->JSON_ctor.Value().New(1, &ctor_args);
       array.Set(i, sub);
       i++;
     }
@@ -63,12 +60,12 @@ Value JSON::Get(const CallbackInfo &info) {
   case element_type::OBJECT: {
     auto object = Object::New(env);
 
-    vector<napi_value> ctor_args = {External<shared_ptr<parser>>::New(env, &parser_),
-                                    External<shared_ptr<element>>::New(env, &document), Value()};
+    JSONElementContext context(*this);
+    napi_value ctor_args = External<JSONElementContext>::New(env, &context);
 
     for (auto field : dom::object(root)) {
-      ctor_args[2] = External<element>::New(env, &field.value);
-      Napi::Value sub = instance->JSON_ctor.Value().New(ctor_args);
+      context.root = field.value;
+      auto sub = instance->JSON_ctor.Value().New(1, &ctor_args);
       object.Set(field.key.data(), sub);
     }
     return object;

@@ -12,7 +12,9 @@ Function JSON::GetClass(Napi::Env env) {
 }
 
 void Cleanup(InstanceData *instance) {
-  printf("Cleanup\n");
+#ifdef DEBUG
+  cerr << "json-async environment cleanup: " << instance << endl;
+#endif
   uv_close(reinterpret_cast<uv_handle_t *>(&instance->runQueueJob), nullptr);
   instance->JSON_ctor.Reset();
 }
@@ -24,6 +26,10 @@ Object Init(Napi::Env env, Object exports) {
   auto instance = new InstanceData;
   instance->JSON_ctor = Persistent(JSON_ctor);
   env.SetInstanceData(instance);
+
+#ifdef DEBUG
+  cerr << "json-async environment initialization: " << instance << endl;
+#endif
 
   uv_loop_t *loop;
   if (napi_get_uv_event_loop(env, &loop) != napi_ok) {
