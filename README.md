@@ -1,55 +1,65 @@
 # json-async
 
-An experiment in computer futility
+An asynchronous alternative to the built-in Node.js/V8 JSON parser
 
 # Background (The IT industry's *JSON* problem)
 
-Recently, when debugging a small and barely noticeable delay when refreshing a website that I manage, I found that it was caused by parsing a relatively big `JSON` file. The rabbit hole ran very deep on that one. I vaguely remembered while working on `gdal-async` some years ago that there was one hugely problematic API call that couldn't be made to work without blocking the event loop - consuming GeoJSON data.
+JSON has become the de-facto standard for automated exchange of data. Just like everything else in the JavaScript world, it was never designed by a committee. It simply came out of nowhere and slowly replaced what many purists considered to be a superior technology (XML) by extreme simplicity of use and the fact that was so well built-in in JavaScript.
 
-I quickly discovered that I was far from being the first one to be confronted with this astonishing issue in modern IT. As I went on exploring the various solutions people had found, I was stunned to find that there was even a SIMD-enabled library that used the AVX instruction set to speed up JSON parsing. As SIMD is definitely not the very first thing that comes to mind when thinking about JSON, I went through various research papers and presentations.
+Today, JSON parsing has become a major problem computing - and many servers spend huge amounts of CPU time processing it.
 
-*(If you, just like me, are curious about it - there is an AVX instruction that allows to do 32 table lookups at the same time)*
+The built-in JSON implementation of Node.js/V8 is remarkably well-optimized and it is absolutely impossible to outperform since it can create the resulting object from inside V8 in a very efficient manner.
 
-**Turns out the IT industry has a serious JSON problem**
+And it is exactly this creation of the resulting object that is its major fault. JavaScript being monothreaded, all objects must be created on the main thread while blocking the event loop.
 
-Implementing that library - whose complexity is almost beyond mortal comprehension - was partly motivated by a study of one big web hosting company which found that half of their CPU cycles were spending encoding and decoding JSON. Seriously?
+This means that every time your backend application must import a `xxx` MB JSON, everything else - and this means *everything else* - accepting new connections, serving other data, emptying network buffers, running timers - must stop and wait.
 
-And as if JSON parsing in C++ was not enough, there is JavaScript which makes it even worse. JSON, the ubiquitous data exchange format in the JavaScript world, is also one of its worst weak spots - both for Node.js and for browser JavaScript.
+# The existing alternatives
 
-JavaScript engines, being mono-threaded, cannot allow background threads to access their object model. Which means that any JSON encoder or decoder must be (almost) fully synchronous - blocking the main thread until its task is done. Get served an 8MB JSON - you can expect up to 1s of user interaction delay.
+## [`simdjson`](https://github.com/simdjson/simdjson) and its official Node.js bindings [`simdjson_nodejs`](https://github.com/luizperes/simdjson_nodejs)
 
-It seems that the problem is very widely recognized, because I was stunned by the performance of the built-in parser in V8. In fact, the ultra high performance C++ `simdjson` outperforms it only on bigger files - and does so by a significant margin only on AVX512-enabled CPUs. In fact, the built-in JSON encoder has a performance that is impossible to beat - only constructing the V8 object by using raw C `Node-API` (we are not even talking `node-addon-api` here) calls is about twice slower than parsing the JSON *AND* constructing the resulting object by the builtin parser.
+`simdjson` is a remarkably complex JSON parser that tries to take advantage of the AVX512 SIMD instruction set. It claims a throughput of up to 6 GB/s on a 2.4 GHz CPU. It is currently the fastest JSON parser by far. The official Node.js bindings offer synchronous access to its parser and are the first main source of inspiration for this project.
 
-The Node.js version `node-simdjson` is almost always slower than the built-in parser (unless the lazy proxying mode is used - you can read more about it in the package).
+The Node.js bindings have several modes of operation
+ * parsing JSON to check validity - which is usually slightly slower than `JSON.parse` for small files and faster for larger files
+ * parsing JSON and creating a native JS object - in which case it is always much slower than the builtin `JSON.parse`
+ * parsing JSON and offering a special API to retrieving the data - which is usually slightly slower than `JSON.parse` for small files and faster for larger files
 
-It seems also that the problem of the user experiencing delays (or dropped packets on the backend side) has also been recognized because there is also a very interesting JSON implementation by the Node.js core-team called `yieldable-json`. It is a pure JavaScript parser that is about 5 times slower than the built-in parser but it yields the control every 5ms to ensure smooth execution of the whole program.
+## [`yiedable-json`](https://github.com/ibmruntimes/yieldable-json)
+
+`yiedable-json` is the other source of inspiration. It is a pure JavaScript implementation that is also browser compatible. It parses JSON and yields the CPU to the event loop every 5ms. This allows other waiting tasks to continue executing without (too much) delay. Being well-mannered comes at a 5 times slower than `JSON.parse` cost.
 
 # `json-async`
 
-This project tries an alternative approach:
+`json-async` tries to combine everything at the price of dropping browser support.
 
-PROS
-* A very fast JSON parser (`simdjson`)
-* Completely asynchronous initial parsing (close to 0ms)
+It provides a number of different interfaces:
 
-CONS
-* Does not use a native JavaScript object, must call `get()` to get fields
+* `JSONAsync.parse()` parses on the main thread returning an object with a special API. It is comparable to `simdjson.lazyParse`.
+
+  *(currently it appears slightly slower because `node-addon-api` does not free the memory in a completely synchronous context forcing the kernel to allocate new pages that must be cleared - in reality it is slightly faster)*
+
+* `JSONAsync.parseAsync()` parses in a background thread returning an object with a special API. It allows for near-zero latency JSON processing.
+
+* `JSONAsync.parse().toObject()` permits to convert any sub-tree of the main document to a native JavaScript object - blocking the event loop just like the built-in parser - it is slower than the built-in parser but it allows to convert only a sub-tree
+
+* `JSONAsync.parseAsync().toObjectAsync()` permits to convert any sub-tree of the main document to a native JavaScript object - while yielding the CPU just like `yieldable-json` - it is quite faster than it and it also allows to convert only a sub-tree
+
 
 # Usage
 
+Drilling down the document with `.get()` returns a single indirection level converted to JavaScript - array of `JSON` elements, object of `JSON` elements or primitive values. It is almost free of event loop latency. Using `.toObject()` converts the remaining subtree to JavaScript - which can incur an event loop latency if the tree is large. Using `.toObjectAsync()` does not block the event loop, but it is much slower.
 ## Sync mode
-
-Sync mode is generally just a little bit faster than the built-in parser but it gets better with very large files and especially on AVX512 CPUs:
 
 ```js
 const { JSON } = require('.');
 const fs = require('fs');
 
 const document = JSON.parse(fs.readFileSync('test/data/canada.json', 'utf8'));
-console.log(document.get()['features'].get()[0].get()['geometry'].get()['coordinates'].get()[10].toObject());
+// With the built-in JSON parser, this would have been equivalent to
+// console.log(document.features[0].geometry.coordinates[10])
+console.log(document.get().features.get()[0].get().geometry.get().coordinates.get()[10].toObject());
 ```
-
-Drilling down the document with `.get()` returns a single indirection level converted to JavaScript - array of `JSON` elements, object of `JSON` elements or primitive values. It is almost free of event loop latency. Using `.toObject()` converts the remaining subtree to JavaScript - which can incur an event loop latency if the tree is large.
 
 ## Async mode
 
@@ -58,11 +68,9 @@ const { JSON } = require('.');
 const fs = require('fs');
 
 const document = await JSON.parseAsync(await fs.promises.readFile('test/data/canada.json', 'utf8'));
-console.log(await document.get()['features'].get()[0].get()['geometry'].get()['coordinates'].get()[10].toObjectAsync());
+console.log(await document.get().features.get()[0].get().geometry.get().coordinates.get()[10].toObjectAsync());
 ```
 
-In async mode, the initial parse does not incur any event loop latency.
+# Current status
 
-Drilling down the document with `get()` is very low-latency too.
-
-`toObjectAsync()` is similar to `yieldable-json`. It still loads the main thread, but it will yield the CPU every 5ms.
+Early alpha, unpublished, highly experimental
