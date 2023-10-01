@@ -26,7 +26,10 @@ Value JSON::Parse(const CallbackInfo &info) {
   }
 
   auto parser_ = make_shared<parser>();
-  auto json = shared_ptr<padded_string>(new padded_string(info[0].ToString().Utf8Value()));
+  size_t json_len;
+  napi_get_value_string_utf8(env, info[0], nullptr, 0, &json_len);
+  auto json = make_shared<padded_string>(json_len);
+  napi_get_value_string_utf8(env, info[0], json->data(), json_len + 1, nullptr);
   auto document = make_shared<element>(parser_->parse(*json));
 
   JSONElementContext context{.input_text = json, .parser_ = parser_, .document = document, .root = *document.get()};

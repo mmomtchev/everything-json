@@ -34,7 +34,11 @@ Value JSON::ParseAsync(const CallbackInfo &info) {
     return deferred.Promise();
   }
 
-  auto json_text = make_shared<padded_string>(info[0].ToString().Utf8Value());
+  auto parser_ = make_shared<parser>();
+  size_t json_len;
+  napi_get_value_string_utf8(env, info[0], nullptr, 0, &json_len);
+  auto json_text = make_shared<padded_string>(json_len);
+  napi_get_value_string_utf8(env, info[0], json_text->data(), json_len + 1, nullptr);
   auto worker = new ParserAsyncWorker(env, json_text);
 
   worker->Queue();
