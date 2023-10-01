@@ -3,15 +3,16 @@
 Function JSON::GetClass(Napi::Env env) {
   return DefineClass(env, "JSON",
                      {
-                         JSON::InstanceMethod("get", &JSON::Get),
-                         JSON::InstanceMethod("toObject", &JSON::ToObject),
-                         JSON::InstanceMethod("toObjectAsync", &JSON::ToObjectAsync),
-                         JSON::StaticMethod("parse", &JSON::Parse),
-                         JSON::StaticMethod("parseAsync", &JSON::ParseAsync),
+                         JSON::InstanceMethod<&JSON::Get>("get"),
+                         JSON::InstanceMethod<&JSON::ToObject>("toObject"),
+                         JSON::InstanceMethod<&JSON::ToObjectAsync>("toObjectAsync"),
+                         JSON::StaticMethod<&JSON::Parse>("parse"),
+                         JSON::StaticMethod<&JSON::ParseAsync>("parseAsync"),
                      });
 }
 
 void Cleanup(InstanceData *instance) {
+  printf("Cleanup\n");
   uv_close(reinterpret_cast<uv_handle_t *>(&instance->runQueueJob), nullptr);
   instance->JSON_ctor.Reset();
 }
