@@ -44,10 +44,7 @@ jobs:
         run: |
           npm i chai chai-spies chai-as-promised mocha typescript ts-node tsconfig-paths @types/chai @types/chai-as-promised @types/mocha @types/node
       - name: Install json-async from npm
-        run: |
-          npm install --force json-async@${{ github.event.inputs.version }}
-          mkdir -p deps/ImageMagick/config
-          cp node_modules/json-async/deps/ImageMagick/config/policy-websafe.xml deps/ImageMagick/config
+        run: npm install --force json-async@${{ github.event.inputs.version }}
         shell: bash
       - name: Run the unit tests
         run: |
