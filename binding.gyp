@@ -1,4 +1,7 @@
 {
+  'target_defaults': {
+    'includes': [ 'except.gypi' ]
+  },
   'targets': [
     {
       'target_name': 'json-async-native',
@@ -14,7 +17,7 @@
         "<(module_root_dir)/deps"
       ],
       'dependencies': [ "<!(node -p \"require('node-addon-api').gyp\")" ],
-      'cflags': [ '-g' ],
+      'cflags': [ '-std=c++17' ],
       'cflags!': [ '-fno-exceptions' ],
       'cflags_cc!': [ '-fno-exceptions' ],
       'xcode_settings': {
@@ -23,7 +26,11 @@
         'MACOSX_DEPLOYMENT_TARGET': '10.7'
       },
       'msvs_settings': {
-        'VCCLCompilerTool': { 'ExceptionHandling': 1 },
+        'VCCLCompilerTool': {
+          'AdditionalOptions': [
+            '/std:c++17'
+          ]
+        }
       }
     }
   ]

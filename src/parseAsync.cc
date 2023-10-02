@@ -17,7 +17,7 @@ Value JSON::ParseAsync(const CallbackInfo &info) {
     virtual void OnOK() override {
       Napi::Env env = Env();
       auto instance = env.GetInstanceData<InstanceData>();
-      JSONElementContext context{.input_text = json_text, .parser_ = parser_, .document = document, .root = *document.get()};
+      JSONElementContext context(json_text, parser_, document, *document.get());
       napi_value ctor_args = External<JSONElementContext>::New(env, &context);
       auto result = instance->JSON_ctor.Value().New(1, &ctor_args);
       deferred.Resolve(result);

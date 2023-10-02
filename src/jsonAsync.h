@@ -31,6 +31,9 @@ struct JSONElementContext {
 
   // The root of this subvalue
   element root;
+
+  JSONElementContext(const shared_ptr<padded_string> &, const shared_ptr<parser> &, const shared_ptr<element> &, const element &);
+  JSONElementContext();
 };
 
 namespace ToObjectAsync {

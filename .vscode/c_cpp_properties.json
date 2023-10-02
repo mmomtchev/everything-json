@@ -9,7 +9,17 @@
             ],
             "compilerPath": "/usr/bin/g++",
             "cStandard": "c99",
-            "cppStandard": "c++14"
+            "cppStandard": "c++17"
+        },
+        {
+            "name": "Windows",
+            "includePath": [
+                "${default}",
+                "${workspaceFolder}/deps"
+            ],
+            "compilerPath": "CL",
+            "cStandard": "c99",
+            "cppStandard": "c++17"
         }
     ],
     "version": 4

@@ -1,6 +1,13 @@
 #include "jsonAsync.h"
 
-JSON::JSON(const CallbackInfo &info) : ObjectWrap<JSON>(info) {
+JSONElementContext::JSONElementContext(const shared_ptr<padded_string> &_input_text, const shared_ptr<parser> &_parser_,
+                                       const shared_ptr<element> &_document, const element &_root)
+    : input_text(_input_text), parser_(_parser_), document(_document), root(_root) {}
+
+JSONElementContext::JSONElementContext() {}
+
+JSON::JSON(const CallbackInfo &info)
+    : ObjectWrap<JSON>(info) {
   Napi::Env env(info.Env());
 
   if (info.Length() != 1 || !info[0].IsExternal()) {
@@ -32,7 +39,7 @@ Value JSON::Parse(const CallbackInfo &info) {
   napi_get_value_string_utf8(env, info[0], json->data(), json_len + 1, nullptr);
   auto document = make_shared<element>(parser_->parse(*json));
 
-  JSONElementContext context{.input_text = json, .parser_ = parser_, .document = document, .root = *document.get()};
+  JSONElementContext context(json, parser_, document, *document.get());
 
   napi_value ctor_args = External<JSONElementContext>::New(env, &context);
   auto r = instance->JSON_ctor.Value().New(1, &ctor_args);

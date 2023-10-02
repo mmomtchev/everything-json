@@ -3,7 +3,7 @@
 queue<shared_ptr<ToObjectAsync::Context>> runQueue;
 namespace ToObjectAsync {
 
-Element::Element(const element &_item) : item(_item), iterator({.object = {}}) {}
+Element::Element(const element &_item) : item(_item), iterator({{}}) {}
 Context::Context(Napi::Env _env, Napi::Value _self)
     : env(_env), self(Persistent(_self)), top(), queue(), deferred(env) {}
 
