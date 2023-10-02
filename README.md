@@ -54,8 +54,8 @@ Drilling down the document with `.get()` returns a single indirection level conv
 
 These two examples convert a subtree of the main document to a JS object.
 
-```js
-const { JSON } = require('.');
+```ts
+import { JSON } from 'json-async';
 const fs = require('fs');
 
 const document = JSON.parse(fs.readFileSync('test/data/canada.json', 'utf8'));
@@ -67,8 +67,8 @@ console.log(document.get().features.get()[0].get().geometry.get()
 
 ## Async mode
 
-```js
-const { JSON } = require('.');
+```ts
+import { JSON } from 'json-async';
 const fs = require('fs');
 
 const document = await JSON.parseAsync(
