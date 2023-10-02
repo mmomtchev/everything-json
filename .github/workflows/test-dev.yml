@@ -28,3 +28,22 @@ jobs:
       - run: npx @mapbox/node-pre-gyp configure
       - run: npx @mapbox/node-pre-gyp build -j max
       - run: npm test
+
+  debug:
+    runs-on: ${{ matrix.platform }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+      - run: npm install --ignore-scripts
+      - run: npx @mapbox/node-pre-gyp configure --debug
+      - run: npx @mapbox/node-pre-gyp build -j max
+      - run: npm test
