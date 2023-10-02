@@ -6,11 +6,11 @@ An asynchronous alternative to the built-in Node.js/V8 JSON parser
 
 JSON has become the de-facto standard for automated exchange of data. Just like everything else in the JavaScript world, it was never designed by a committee. It simply came out of nowhere and slowly replaced what many purists considered to be a superior technology (XML) by extreme simplicity of use and the fact that was so well built-in in JavaScript.
 
-Today, JSON parsing has become a major problem computing - and many servers spend huge amounts of CPU time processing it.
+Today, JSON parsing has become a major problem in computing - and many servers spend huge amounts of CPU time doing it.
 
 The built-in JSON implementation of Node.js/V8 is remarkably well-optimized and it is absolutely impossible to outperform since it can create the resulting object from inside V8 in a very efficient manner.
 
-And it is exactly this creation of the resulting object that is its major fault. JavaScript being monothreaded, all objects must be created on the main thread while blocking the event loop.
+And it is exactly this creation of the resulting object that is also its major fault. JavaScript being monothreaded, all objects must be created on the main thread while blocking the event loop.
 
 This means that every time your backend application must import a `xxx` MB JSON, everything else - and this means *everything else* - accepting new connections, serving other data, emptying network buffers, running timers - must stop and wait.
 
@@ -28,7 +28,7 @@ The Node.js bindings have several modes of operation
 
 ## [`yiedable-json`](https://github.com/ibmruntimes/yieldable-json)
 
-`yiedable-json` is the other source of inspiration. It is a pure JavaScript implementation that is also browser compatible. It parses JSON and yields the CPU to the event loop every 5ms. This allows other waiting tasks to continue executing without (too much) delay. Being well-mannered comes at a 5 times slower than `JSON.parse` cost.
+`yiedable-json` is the other source of inspiration for this project. It is a pure JavaScript implementation that is also browser compatible. It parses JSON and yields the CPU to the event loop every 5ms. This allows other waiting tasks to continue executing without (too much) delay. Being well-mannered comes at a 5 times slower than `JSON.parse` cost.
 
 # `json-async`
 
