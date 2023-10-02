@@ -4,7 +4,7 @@
   },
   'targets': [
     {
-      'target_name': 'json-async-native',
+      'target_name': '<(module_name)',
       'sources': [
         'deps/simdjson.cpp',
         'src/main.cc',
@@ -32,6 +32,19 @@
           ]
         }
       }
+    },
+    {
+      'target_name': 'action_after_build',
+      'type': 'none',
+      'dependencies': [ '<(module_name)' ],
+      'copies': [
+        {
+          'files': [
+            '<(PRODUCT_DIR)/json-async.node'
+          ],
+          'destination': '<(module_path)'
+        }
+      ]
     }
   ]
 }
