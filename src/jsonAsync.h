@@ -33,10 +33,39 @@ struct JSONElementContext {
   element root;
 };
 
+namespace ToObjectAsync {
+// This is the state for the iterative tree traversal
+// of ToObjectAsync
+struct Element {
+  element item;
+  union {
+    struct {
+      dom::array::iterator idx;
+      dom::array::iterator end;
+    } array;
+    struct {
+      dom::object::iterator idx;
+      dom::object::iterator end;
+    } object;
+  } iterator;
+  Reference<Value> ref;
+  size_t idx;
+  Element(const element &_item) : item(_item), iterator({.object = {}}) {}
+};
+
+struct Context {
+  Napi::Env env;
+  Napi::Reference<Value> top;
+  vector<Element *> &queue;
+  function<void(Napi::Value)> resolve;
+  function<void(exception_ptr)> reject;
+};
+
+};
+
 class JSON : public ObjectWrap<JSON>, JSONElementContext {
   static Napi::Value ToObject(Napi::Env, const element &);
-  static void ToObjectAsync(Napi::Env, const element &, const function<void(Napi::Value)>,
-                            const function<void(exception_ptr)>, high_resolution_clock::time_point);
+  static void ToObjectAsync(ToObjectAsync::Context *, high_resolution_clock::time_point);
 
 public:
   JSON(const CallbackInfo &);
