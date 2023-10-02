@@ -13,6 +13,7 @@ static inline bool CanRun(const high_resolution_clock::time_point &start) {
   return duration_cast<milliseconds>(high_resolution_clock::now() - start).count() < 5;
 }
 
+// Process the micro task queue
 void JSON::ProcessRunQueue(uv_async_t *handle) {
   const auto start(high_resolution_clock::now());
 
@@ -29,6 +30,7 @@ void JSON::ProcessRunQueue(uv_async_t *handle) {
   }
 }
 
+// Main JS entry point
 Value JSON::ToObjectAsync(const CallbackInfo &info) {
   Napi::Env env(info.Env());
 
@@ -39,6 +41,10 @@ Value JSON::ToObjectAsync(const CallbackInfo &info) {
   return state->deferred.Promise();
 }
 
+// The actual implementation, called from the JS entry point
+// and the task queue loop, runs until it is allowed, keeps its
+// context in shared_ptr<ToObjectAsync::Context> state
+// (this is an iterative heterogenous tree traversal)
 void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resolution_clock::time_point start) {
   Napi::Env env = state->env;
   auto &queue = state->queue;
@@ -58,9 +64,9 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
     else
       previous = nullptr;
 
+    // Evaluate the item and create a JS representation
     do {
       switch (current->item.type()) {
-        // Array / Object -> add to the queue (recurse down) and restart the loop
       case element_type::ARRAY: {
         size_t len = dom::array(current->item).size();
         auto array = Array::New(env, len);
@@ -74,7 +80,6 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
         result = object;
         break;
       }
-      // Primitive values -> construct the value
       case element_type::STRING: {
         result = String::New(env, current->item.get_c_str());
         break;
@@ -94,8 +99,8 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
         throw Error::New(env, "Invalid JSON element");
       }
 
-      // Set the obtained value at the upper level in its
-      // parent slot: object, array or the top (resolve)
+      // Set the obtained JS value at the upper level in its
+      // parent slot: object, array or the top
       if (!previous) {
         state->top = Persistent(result);
       } else {
@@ -116,7 +121,7 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
         }
       }
 
-      // Next element in the tree
+      // Go to the next element in the tree
       switch (current->item.type()) {
       // Array / Object -> recurse down
       case element_type::ARRAY:
