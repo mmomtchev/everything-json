@@ -61,7 +61,8 @@ const fs = require('fs');
 const document = JSON.parse(fs.readFileSync('test/data/canada.json', 'utf8'));
 // With the built-in JSON parser, this would have been equivalent to
 // console.log(document.features[0].geometry.coordinates[10])
-console.log(document.get().features.get()[0].get().geometry.get().coordinates.get()[10].toObject());
+console.log(document.get().features.get()[0].get().geometry.get()
+  .coordinates.get()[10].toObject());
 ```
 
 ## Async mode
@@ -70,8 +71,11 @@ console.log(document.get().features.get()[0].get().geometry.get().coordinates.ge
 const { JSON } = require('.');
 const fs = require('fs');
 
-const document = await JSON.parseAsync(await fs.promises.readFile('test/data/canada.json', 'utf8'));
-console.log(await document.get().features.get()[0].get().geometry.get().coordinates.get()[10].toObjectAsync());
+const document = await JSON.parseAsync(
+  await fs.promises.readFile('test/data/canada.json', 'utf8'));
+
+console.log(await document.get().features.get()[0].get().geometry.get()
+  .coordinates.get()[10].toObjectAsync());
 ```
 
 # Current status
