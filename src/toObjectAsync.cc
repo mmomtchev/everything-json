@@ -31,7 +31,7 @@ void JSON::ProcessRunQueue(uv_async_t *handle) {
 
 Value JSON::ToObjectAsync(const CallbackInfo &info) {
   Napi::Env env(info.Env());
-  auto deferred = new Promise::Deferred(env);
+  auto deferred = make_shared<Promise::Deferred>(env);
   auto persistent = new Reference<Napi::Value>();
   *persistent = Persistent(info.This());
 
@@ -41,7 +41,6 @@ Value JSON::ToObjectAsync(const CallbackInfo &info) {
         deferred->Resolve(element);
         persistent->Reset();
         delete persistent;
-        delete deferred;
       },
       [persistent, deferred, env](exception_ptr err) {
         try {
@@ -51,7 +50,6 @@ Value JSON::ToObjectAsync(const CallbackInfo &info) {
         }
         persistent->Reset();
         delete persistent;
-        delete deferred;
       },
       high_resolution_clock::now());
 
@@ -70,13 +68,14 @@ struct ToObjectAsyncContext {
       dom::object::iterator end;
     } object;
   } iterator;
-  ObjectReference ref;
+  Reference<Value> ref;
   size_t idx;
   ToObjectAsyncContext(const element &_item) : item(_item), iterator({.object = {}}) {}
 };
 
 void JSON::ToObjectAsync(Napi::Env env, const element &root, const function<void(Napi::Value)> resolve,
                          const function<void(exception_ptr)> reject, high_resolution_clock::time_point start) {
+  printf("In C++\n");
   HandleScope scope(env);
   Napi::Value result;
   Napi::Value top;
@@ -97,13 +96,13 @@ void JSON::ToObjectAsync(Napi::Env env, const element &root, const function<void
         Array array;
         size_t len = dom::array(current->item).size();
         array = Array::New(env, len);
-        current->ref = Persistent(array.ToObject());
+        current->ref = Persistent<Napi::Value>(array);
         result = array;
         break;
       }
       case element_type::OBJECT: {
         auto object = Object::New(env);
-        current->ref = Persistent(object);
+        current->ref = Persistent<Napi::Value>(object);
         result = object;
         break;
       }
@@ -179,9 +178,6 @@ void JSON::ToObjectAsync(Napi::Env env, const element &root, const function<void
             previous->idx++;
             previous->iterator.array.idx++;
             if (previous->iterator.array.idx == previous->iterator.array.end) {
-              if (!current->ref.IsEmpty())
-                current->ref.Reset();
-              queue.pop_back();
               backtracked = true;
             } else {
               current->item = *previous->iterator.array.idx;
@@ -191,10 +187,6 @@ void JSON::ToObjectAsync(Napi::Env env, const element &root, const function<void
           case element_type::OBJECT: {
             previous->iterator.object.idx++;
             if (previous->iterator.object.idx == previous->iterator.object.end) {
-              if (!current->ref.IsEmpty())
-                current->ref.Reset();
-              current->ref.Reset();
-              queue.pop_back();
               backtracked = true;
             } else {
               current->item = (*previous->iterator.object.idx).value;
@@ -205,6 +197,10 @@ void JSON::ToObjectAsync(Napi::Env env, const element &root, const function<void
             throw Error::New(env, "Internal error");
           }
           if (backtracked) {
+            if (!current->ref.IsEmpty())
+              current->ref.Reset();
+            delete current;
+            queue.pop_back();
             current = queue.end()[-1];
             if (queue.size() > 1)
               previous = queue.end()[-2];
@@ -221,6 +217,7 @@ void JSON::ToObjectAsync(Napi::Env env, const element &root, const function<void
     reject(current_exception());
   }
 
+  delete(current);
   resolve(top);
 
   /*if (!runQueue.empty()) {

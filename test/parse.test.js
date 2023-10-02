@@ -47,7 +47,7 @@ describe('GeoJSON', () => {
         assert.isObject(object);
         assert.sameMembers(Object.keys(object), ['type', 'features']);
         assert.closeTo(object.features[0].geometry.coordinates[10][2][0], -55.946, 1e-3);
-        assert.deepEqual(object.features[0].properties, expected.features[0].properties);
+        assert.deepEqual(object, expected);
         done();
       })
       .catch(done);
