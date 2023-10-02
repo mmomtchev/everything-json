@@ -41,6 +41,9 @@ Value JSON::ToObjectAsync(const CallbackInfo &info) {
   return state->deferred.Promise();
 }
 
+#define LAST(v)   (&(v).end()[-1])
+#define PENULT(v) (((v).size() > 1) ? (&(v).end()[-2]) : nullptr)
+
 // The actual implementation, called from the JS entry point
 // and the task queue loop, runs until it is allowed, keeps its
 // context in shared_ptr<ToObjectAsync::Context> state
@@ -53,14 +56,9 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
   Napi::Value result;
 
   ToObjectAsync::Element *current, *previous;
-
-  current = &queue.end()[-1];
-  if (queue.size() > 1)
-    previous = &queue.end()[-2];
-  else
-    previous = nullptr;
-
   try {
+    current = LAST(queue);
+    previous = PENULT(queue);
     // Loop invariant at the beginning:
     // * current->item holds the currently evaluated item
     // * previous->item / previous->iterator hold its slot in the parent object/array
@@ -130,15 +128,15 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
         current->iterator.array.end = dom::array(current->item).end();
         current->idx = 0;
         queue.emplace_back(ToObjectAsync::Element(*current->iterator.array.idx));
-        current = &queue.end()[-1];
-        previous = &queue.end()[-2];
+        current = LAST(queue);
+        previous = PENULT(queue);
         break;
       case element_type::OBJECT:
         current->iterator.object.idx = dom::object(current->item).begin();
         current->iterator.object.end = dom::object(current->item).end();
         queue.emplace_back(ToObjectAsync::Element((*current->iterator.object.idx).value));
-        current = &queue.end()[-1];
-        previous = &queue.end()[-2];
+        current = LAST(queue);
+        previous = PENULT(queue);
         break;
 
       default:
@@ -156,6 +154,8 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
               if (!current->ref.IsEmpty())
                 current->ref.Reset();
               queue.pop_back();
+              current = LAST(queue);
+              previous = PENULT(queue);
             } else {
               current->item = *previous->iterator.array.idx;
             }
@@ -168,6 +168,8 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
               if (!current->ref.IsEmpty())
                 current->ref.Reset();
               queue.pop_back();
+              current = LAST(queue);
+              previous = PENULT(queue);
             } else {
               current->item = (*previous->iterator.object.idx).value;
             }
@@ -176,13 +178,6 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
           default:
             throw Error::New(env, "Internal error");
           }
-
-          current = &queue.end()[-1];
-          if (queue.size() > 1)
-            previous = &queue.end()[-2];
-          else
-            previous = nullptr;
-
         } while (backtracked && previous);
       }
 
