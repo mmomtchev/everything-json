@@ -1,6 +1,13 @@
 #include "jsonAsync.h"
 
-queue<ToObjectAsync::Context *> runQueue;
+queue<shared_ptr<ToObjectAsync::Context>> runQueue;
+namespace ToObjectAsync {
+
+Element::Element(const element &_item) : item(_item), iterator({.object = {}}) {}
+Context::Context(Napi::Env _env, Napi::Value _self)
+    : env(_env), self(Persistent(_self)), top(), queue(), deferred(env) {}
+
+} // namespace ToObjectAsync
 
 static inline bool CanRun(const high_resolution_clock::time_point &start) {
   return duration_cast<milliseconds>(high_resolution_clock::now() - start).count() < 5;
@@ -22,51 +29,17 @@ void JSON::ProcessRunQueue(uv_async_t *handle) {
   }
 }
 
-static void dummyResolve(Napi::Value) { abort(); }
-static void dummyReject(exception_ptr) { abort(); }
-
 Value JSON::ToObjectAsync(const CallbackInfo &info) {
   Napi::Env env(info.Env());
-  auto deferred = make_shared<Promise::Deferred>(env);
-  auto persistent = new Reference<Napi::Value>();
-  *persistent = Persistent(info.This());
 
-  auto rootElement = new ToObjectAsync::Element(root);
-  auto queue = new vector<ToObjectAsync::Element *>({rootElement});
-  auto *state = new ToObjectAsync::Context({.env = env,
-                                            .top = Napi::Reference<Napi::Value>(),
-                                            .queue = *queue,
-                                            // suppress a compiler warning
-                                            .resolve = dummyResolve,
-                                            .reject = dummyReject});
-
-  state->resolve = [persistent, deferred, rootElement, queue, state](Napi::Value element) -> void {
-    deferred->Resolve(element);
-    persistent->Reset();
-    delete persistent;
-    delete rootElement;
-    delete queue;
-    delete state;
-  };
-  state->reject = [persistent, deferred, env, rootElement, queue, state](exception_ptr err) -> void {
-    try {
-      rethrow_exception(err);
-    } catch (const exception &e) {
-      deferred->Reject(Error::New(env, e.what()).Value());
-    }
-    persistent->Reset();
-    delete persistent;
-    delete rootElement;
-    delete queue;
-    delete state;
-  };
-
+  auto state = make_shared<ToObjectAsync::Context>(env, info.This());
+  state->queue.emplace_back(ToObjectAsync::Element(root));
   ToObjectAsync(state, high_resolution_clock::now());
 
-  return deferred->Promise();
+  return state->deferred.Promise();
 }
 
-void JSON::ToObjectAsync(ToObjectAsync::Context *state, high_resolution_clock::time_point start) {
+void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resolution_clock::time_point start) {
   Napi::Env env = state->env;
   auto &queue = state->queue;
 
@@ -79,9 +52,9 @@ void JSON::ToObjectAsync(ToObjectAsync::Context *state, high_resolution_clock::t
     // Loop invariant at the beginning:
     // * current->item holds the currently evaluated item
     // * previous->item / previous->iterator hold its slot in the parent object/array
-    current = queue.end()[-1];
+    current = &queue.end()[-1];
     if (queue.size() > 1)
-      previous = queue.end()[-2];
+      previous = &queue.end()[-2];
     else
       previous = nullptr;
 
@@ -150,16 +123,23 @@ void JSON::ToObjectAsync(ToObjectAsync::Context *state, high_resolution_clock::t
         current->iterator.array.idx = dom::array(current->item).begin();
         current->iterator.array.end = dom::array(current->item).end();
         current->idx = 0;
-        previous = current;
-        current = new ToObjectAsync::Element(*current->iterator.array.idx);
-        queue.push_back(current);
+        queue.emplace_back(ToObjectAsync::Element(*current->iterator.array.idx));
+        current = &queue.end()[-1];
+        if (queue.size() > 1)
+          previous = &queue.end()[-2];
+        else
+          previous = nullptr;
         break;
       case element_type::OBJECT:
         current->iterator.object.idx = dom::object(current->item).begin();
         current->iterator.object.end = dom::object(current->item).end();
         previous = current;
-        current = new ToObjectAsync::Element((*current->iterator.object.idx).value);
-        queue.push_back(current);
+        queue.emplace_back(ToObjectAsync::Element((*current->iterator.object.idx).value));
+        current = &queue.end()[-1];
+        if (queue.size() > 1)
+          previous = &queue.end()[-2];
+        else
+          previous = nullptr;
         break;
 
       default:
@@ -174,6 +154,9 @@ void JSON::ToObjectAsync(ToObjectAsync::Context *state, high_resolution_clock::t
             previous->iterator.array.idx++;
             if (previous->iterator.array.idx == previous->iterator.array.end) {
               backtracked = true;
+              if (!current->ref.IsEmpty())
+                current->ref.Reset();
+              queue.pop_back();
             } else {
               current->item = *previous->iterator.array.idx;
             }
@@ -183,6 +166,9 @@ void JSON::ToObjectAsync(ToObjectAsync::Context *state, high_resolution_clock::t
             previous->iterator.object.idx++;
             if (previous->iterator.object.idx == previous->iterator.object.end) {
               backtracked = true;
+              if (!current->ref.IsEmpty())
+                current->ref.Reset();
+              queue.pop_back();
             } else {
               current->item = (*previous->iterator.object.idx).value;
             }
@@ -191,30 +177,27 @@ void JSON::ToObjectAsync(ToObjectAsync::Context *state, high_resolution_clock::t
           default:
             throw Error::New(env, "Internal error");
           }
-          if (backtracked) {
-            if (!current->ref.IsEmpty())
-              current->ref.Reset();
-            delete current;
-            queue.pop_back();
-            current = queue.end()[-1];
-            if (queue.size() > 1)
-              previous = queue.end()[-2];
-            else
-              previous = nullptr;
-          }
+
+          current = &queue.end()[-1];
+          if (queue.size() > 1)
+            previous = &queue.end()[-2];
+          else
+            previous = nullptr;
+
         } while (backtracked && previous);
       }
 
       // if previous == nullptr here, we have successfully
       // recursed our way back to the top
     } while (previous && CanRun(start));
-  } catch (...) {
-    state->reject(current_exception());
+  } catch (const exception &err) {
+    state->deferred.Reject(Error::New(env, err.what()).Value());
+    return;
   }
 
   if (!previous) {
     assert(!state->top.IsEmpty());
-    state->resolve(state->top.Value());
+    state->deferred.Resolve(state->top.Value());
   } else {
     runQueue.push(state);
     auto instance = env.GetInstanceData<InstanceData>();

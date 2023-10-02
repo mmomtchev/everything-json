@@ -50,22 +50,26 @@ struct Element {
   } iterator;
   Reference<Value> ref;
   size_t idx;
-  Element(const element &_item) : item(_item), iterator({.object = {}}) {}
+  Element(const element &);
 };
 
 struct Context {
   Napi::Env env;
+  // The JSON wrapped object
+  Napi::Reference<Value> self;
+  // The root of the constructed JS object
   Napi::Reference<Value> top;
-  vector<Element *> &queue;
-  function<void(Napi::Value)> resolve;
-  function<void(exception_ptr)> reject;
+  // The iterative traversal queue
+  vector<Element> queue;
+  Promise::Deferred deferred;
+  Context(Napi::Env, Napi::Value);
 };
 
 };
 
 class JSON : public ObjectWrap<JSON>, JSONElementContext {
   static Napi::Value ToObject(Napi::Env, const element &);
-  static void ToObjectAsync(ToObjectAsync::Context *, high_resolution_clock::time_point);
+  static void ToObjectAsync(shared_ptr<ToObjectAsync::Context>, high_resolution_clock::time_point);
 
 public:
   JSON(const CallbackInfo &);
