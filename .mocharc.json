@@ -1,6 +1,9 @@
 {
+  "spec": "test/*.test.ts",
   "require": [
-    "./test/mocha.init.js"
+    "ts-node/register",
+    "tsconfig-paths/register",
+    "./test/mocha.init.ts"
   ],
   "v8-expose-gc": true
 }

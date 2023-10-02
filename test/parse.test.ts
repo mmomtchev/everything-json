@@ -1,8 +1,8 @@
-const fs = require('fs');
-const path = require('path');
-const { assert } = require('chai');
+import * as fs from 'fs';
+import * as path from 'path';
+import { assert } from 'chai';
 
-const JSONAsync = require('..').JSON;
+import { JSON as JSONAsync } from 'json-async';
 
 describe('GeoJSON', () => {
   const text = fs.readFileSync(path.resolve(__dirname, 'data', 'canada.json'), 'utf8');
