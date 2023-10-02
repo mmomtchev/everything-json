@@ -54,15 +54,16 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
 
   ToObjectAsync::Element *current, *previous;
 
+  current = &queue.end()[-1];
+  if (queue.size() > 1)
+    previous = &queue.end()[-2];
+  else
+    previous = nullptr;
+
   try {
     // Loop invariant at the beginning:
     // * current->item holds the currently evaluated item
     // * previous->item / previous->iterator hold its slot in the parent object/array
-    current = &queue.end()[-1];
-    if (queue.size() > 1)
-      previous = &queue.end()[-2];
-    else
-      previous = nullptr;
 
     // Evaluate the item and create a JS representation
     do {
@@ -130,21 +131,14 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
         current->idx = 0;
         queue.emplace_back(ToObjectAsync::Element(*current->iterator.array.idx));
         current = &queue.end()[-1];
-        if (queue.size() > 1)
-          previous = &queue.end()[-2];
-        else
-          previous = nullptr;
+        previous = &queue.end()[-2];
         break;
       case element_type::OBJECT:
         current->iterator.object.idx = dom::object(current->item).begin();
         current->iterator.object.end = dom::object(current->item).end();
-        previous = current;
         queue.emplace_back(ToObjectAsync::Element((*current->iterator.object.idx).value));
         current = &queue.end()[-1];
-        if (queue.size() > 1)
-          previous = &queue.end()[-2];
-        else
-          previous = nullptr;
+        previous = &queue.end()[-2];
         break;
 
       default:
