@@ -1,13 +1,6 @@
 #include "jsonAsync.h"
 
-struct ToObjectAsyncArgs {
-  Napi::Env env;
-  const element root;
-  const function<void(Napi::Value)> resolve;
-  const function<void(exception_ptr)> reject;
-};
-
-queue<ToObjectAsyncArgs> runQueue;
+queue<ToObjectAsync::Context *> runQueue;
 
 static inline bool CanRun(const high_resolution_clock::time_point &start) {
   return duration_cast<milliseconds>(high_resolution_clock::now() - start).count() < 5;
@@ -17,8 +10,8 @@ void JSON::ProcessRunQueue(uv_async_t *handle) {
   const auto start(high_resolution_clock::now());
 
   while (!runQueue.empty() && CanRun(start)) {
-    auto const &args = runQueue.front();
-    ToObjectAsync(args.env, args.root, args.resolve, args.reject, start);
+    auto args = runQueue.front();
+    ToObjectAsync(args, start);
     runQueue.pop();
   }
 
@@ -29,72 +22,75 @@ void JSON::ProcessRunQueue(uv_async_t *handle) {
   }
 }
 
+static void dummyResolve(Napi::Value) { abort(); }
+static void dummyReject(exception_ptr) { abort(); }
+
 Value JSON::ToObjectAsync(const CallbackInfo &info) {
   Napi::Env env(info.Env());
   auto deferred = make_shared<Promise::Deferred>(env);
   auto persistent = new Reference<Napi::Value>();
   *persistent = Persistent(info.This());
 
-  ToObjectAsync(
-      info.Env(), root,
-      [persistent, deferred](Napi::Value element) {
-        deferred->Resolve(element);
-        persistent->Reset();
-        delete persistent;
-      },
-      [persistent, deferred, env](exception_ptr err) {
-        try {
-          rethrow_exception(err);
-        } catch (const exception &e) {
-          deferred->Reject(Error::New(env, e.what()).Value());
-        }
-        persistent->Reset();
-        delete persistent;
-      },
-      high_resolution_clock::now());
+  auto rootElement = new ToObjectAsync::Element(root);
+  auto queue = new vector<ToObjectAsync::Element *>({rootElement});
+  auto *state = new ToObjectAsync::Context({.env = env,
+                                            .top = Napi::Reference<Napi::Value>(),
+                                            .queue = *queue,
+                                            // suppress a compiler warning
+                                            .resolve = dummyResolve,
+                                            .reject = dummyReject});
+
+  state->resolve = [persistent, deferred, rootElement, queue, state](Napi::Value element) -> void {
+    deferred->Resolve(element);
+    persistent->Reset();
+    delete persistent;
+    delete rootElement;
+    delete queue;
+    delete state;
+  };
+  state->reject = [persistent, deferred, env, rootElement, queue, state](exception_ptr err) -> void {
+    try {
+      rethrow_exception(err);
+    } catch (const exception &e) {
+      deferred->Reject(Error::New(env, e.what()).Value());
+    }
+    persistent->Reset();
+    delete persistent;
+    delete rootElement;
+    delete queue;
+    delete state;
+  };
+
+  ToObjectAsync(state, high_resolution_clock::now());
 
   return deferred->Promise();
 }
 
-struct ToObjectAsyncContext {
-  element item;
-  union {
-    struct {
-      dom::array::iterator idx;
-      dom::array::iterator end;
-    } array;
-    struct {
-      dom::object::iterator idx;
-      dom::object::iterator end;
-    } object;
-  } iterator;
-  Reference<Value> ref;
-  size_t idx;
-  ToObjectAsyncContext(const element &_item) : item(_item), iterator({.object = {}}) {}
-};
+void JSON::ToObjectAsync(ToObjectAsync::Context *state, high_resolution_clock::time_point start) {
+  Napi::Env env = state->env;
+  auto &queue = state->queue;
 
-void JSON::ToObjectAsync(Napi::Env env, const element &root, const function<void(Napi::Value)> resolve,
-                         const function<void(exception_ptr)> reject, high_resolution_clock::time_point start) {
   HandleScope scope(env);
   Napi::Value result;
-  Napi::Value top;
-  Object object;
 
-  ToObjectAsyncContext *current = new ToObjectAsyncContext(root);
-  vector<ToObjectAsyncContext *> queue{current};
-  ToObjectAsyncContext *previous = nullptr;
+  ToObjectAsync::Element *current, *previous;
 
   try {
     // Loop invariant at the beginning:
     // * current->item holds the currently evaluated item
     // * previous->item / previous->iterator hold its slot in the parent object/array
+    current = queue.end()[-1];
+    if (queue.size() > 1)
+      previous = queue.end()[-2];
+    else
+      previous = nullptr;
+
     do {
       switch (current->item.type()) {
         // Array / Object -> add to the queue (recurse down) and restart the loop
       case element_type::ARRAY: {
-        Array array;
         size_t len = dom::array(current->item).size();
-        array = Array::New(env, len);
+        auto array = Array::New(env, len);
         current->ref = Persistent<Napi::Value>(array);
         result = array;
         break;
@@ -128,7 +124,7 @@ void JSON::ToObjectAsync(Napi::Env env, const element &root, const function<void
       // Set the obtained value at the upper level in its
       // parent slot: object, array or the top (resolve)
       if (!previous) {
-        top = result;
+        state->top = Persistent(result);
       } else {
         switch (previous->item.type()) {
         case element_type::ARRAY: {
@@ -155,14 +151,14 @@ void JSON::ToObjectAsync(Napi::Env env, const element &root, const function<void
         current->iterator.array.end = dom::array(current->item).end();
         current->idx = 0;
         previous = current;
-        current = new ToObjectAsyncContext(*current->iterator.array.idx);
+        current = new ToObjectAsync::Element(*current->iterator.array.idx);
         queue.push_back(current);
         break;
       case element_type::OBJECT:
         current->iterator.object.idx = dom::object(current->item).begin();
         current->iterator.object.end = dom::object(current->item).end();
         previous = current;
-        current = new ToObjectAsyncContext((*current->iterator.object.idx).value);
+        current = new ToObjectAsync::Element((*current->iterator.object.idx).value);
         queue.push_back(current);
         break;
 
@@ -211,17 +207,18 @@ void JSON::ToObjectAsync(Napi::Env env, const element &root, const function<void
 
       // if previous == nullptr here, we have successfully
       // recursed our way back to the top
-    } while (previous);
+    } while (previous && CanRun(start));
   } catch (...) {
-    reject(current_exception());
+    state->reject(current_exception());
   }
 
-  delete(current);
-  resolve(top);
-
-  /*if (!runQueue.empty()) {
+  if (!previous) {
+    assert(!state->top.IsEmpty());
+    state->resolve(state->top.Value());
+  } else {
+    runQueue.push(state);
     auto instance = env.GetInstanceData<InstanceData>();
-    uv_async_send(&instance->runQueueJob);
     uv_ref(reinterpret_cast<uv_handle_t *>(&instance->runQueueJob));
-  }*/
+    uv_async_send(&instance->runQueueJob);
+  }
 }
