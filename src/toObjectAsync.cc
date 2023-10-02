@@ -75,7 +75,6 @@ struct ToObjectAsyncContext {
 
 void JSON::ToObjectAsync(Napi::Env env, const element &root, const function<void(Napi::Value)> resolve,
                          const function<void(exception_ptr)> reject, high_resolution_clock::time_point start) {
-  printf("In C++\n");
   HandleScope scope(env);
   Napi::Value result;
   Napi::Value top;
