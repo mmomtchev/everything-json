@@ -183,6 +183,10 @@ The currently used SIMD implementation
 
 Type: (`"icelake"` | `"haswell"` | `"westmere"` | `"arm64"` | `"ppc64"` | `"fallback"`)
 
+# Security
+
+As with every other software that parses untrusted and unsanitized user input, there is a risk of vulnerability. However as JSON is a very simple format and `simdjson` is an extensively tested and very widely used library, security vulnerabilities are rather unlikely.
+
 # Copyright
 
 Copyright 2023 Momtchil Momtchev <momtchil@momtchev.com>
