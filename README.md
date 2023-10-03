@@ -2,6 +2,12 @@
 
 *An asynchronous alternative to the built-in Node.js/V8 JSON parser with everything*
 
+[![ISC](https://img.shields.io/github/license/mmomtchev/pymport)](https://github.com/mmomtchev/pymport/blob/main/LICENSE)
+[![Node.js CI](https://github.com/mmomtchev/everything-json/actions/workflows/test-dev.yml/badge.svg)](https://github.com/mmomtchev/everything-json/actions/workflows/test-dev.yml)
+[![codecov](https://codecov.io/gh/mmomtchev/everything-json/graph/badge.svg?token=NNGNMBL0XN)](https://codecov.io/gh/mmomtchev/everything-json)
+[![npm](https://img.shields.io/npm/v/pymport)](https://www.npmjs.com/package/pymport)
+[![Test npm package](https://github.com/mmomtchev/everything-json/actions/workflows/test-package.yml/badge.svg)](https://github.com/mmomtchev/everything-json/actions/workflows/test-package.yml)
+
 ![Everything Bagel](https://raw.githubusercontent.com/mmomtchev/everything-json/main/everything-bagel.png)
 
 # Background (The IT industry's *JSON* problem)
