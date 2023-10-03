@@ -1,6 +1,6 @@
 const { assert } = require('chai');
 
-const { JSON } = require('json-async');
+const { JSON } = require('everything-json');
 
 describe('CJS require()', () => {
   it('parse()', () => {

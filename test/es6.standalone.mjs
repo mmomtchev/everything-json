@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 
-import { JSON } from 'json-async';
+import { JSON } from 'everything-json';
 
 describe('ES6 import', () => {
   it('parse()', () => {

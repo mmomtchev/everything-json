@@ -2,7 +2,7 @@
 
 *An asynchronous alternative to the built-in Node.js/V8 JSON parser with everything*
 
-![Everything Bagel](https://raw.githubusercontent.com/mmomtchev/json-async/main/everything-bagel.png)
+![Everything Bagel](https://raw.githubusercontent.com/mmomtchev/everything-json/main/everything-bagel.png)
 
 # Background (The IT industry's *JSON* problem)
 
