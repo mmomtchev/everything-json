@@ -9,7 +9,7 @@
   "scripts": {
     "test": "npx mocha",
     "lint": "eslint lib/*.cjs test/*.ts",
-    "preversion": "npm run lint && npm run test",
+    "preversion": "npm run lint && npm run test && npm run doc",
     "postversion": "git push && git push --tags && node ./scripts/publish-packages.js",
     "postpublish": "gh workflow run test-package.yml -F version=$npm_package_version",
     "doc": "documentation readme -f md -s 'Full API' lib/index.d.ts"
