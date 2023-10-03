@@ -82,7 +82,7 @@ Be aware that not only reading a file as a `Buffer` is about 3 times faster than
 
 # Current status
 
-Unpublished alpha but should be usable
+Usable alpha version
 
 # Full API
 
