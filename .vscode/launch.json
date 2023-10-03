@@ -36,7 +36,7 @@
       "request": "launch",
       "program": "/usr/bin/node",
       "args": [
-        "run.js",
+        "Attic/run.js",
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",

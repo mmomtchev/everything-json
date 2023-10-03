@@ -10,7 +10,11 @@ Context::Context(Napi::Env _env, Napi::Value _self)
 } // namespace ToObjectAsync
 
 inline bool JSON::CanRun(const high_resolution_clock::time_point &start) {
+#ifdef DEBUG_VERBOSE
+  return true;
+#else
   return duration_cast<milliseconds>(high_resolution_clock::now() - start).count() < latency;
+#endif
 }
 
 // Process the micro task queue
@@ -107,12 +111,22 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
         case element_type::ARRAY: {
           Array array = previous->ref.Value().As<Array>();
           array.Set(previous->idx, result);
+#ifdef DEBUG_VERBOSE
+          printf("%.*s [%u] = %s\n",
+            (int)queue.size(), "                       ",
+            (unsigned)previous->idx, result.ToString().Utf8Value().c_str());
+#endif
           break;
         }
         case element_type::OBJECT: {
           Object object = previous->ref.Value().ToObject();
           auto key = (*previous->iterator.object.idx).key.data();
           object.Set(key, result);
+#ifdef DEBUG_VERBOSE
+          printf("%.*s {%s} = %s\n",
+            (int)queue.size(), "                       ",
+            key, result.ToString().Utf8Value().c_str());
+#endif
           break;
         }
         default:
@@ -127,6 +141,9 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
         current->iterator.array.idx = dom::array(current->item).begin();
         current->iterator.array.end = dom::array(current->item).end();
         current->idx = 0;
+        if (current->iterator.array.idx == current->iterator.array.end) {
+          goto empty;
+        }
         queue.emplace_back(ToObjectAsync::Element(*current->iterator.array.idx));
         current = LAST(queue);
         previous = PENULT(queue);
@@ -134,12 +151,16 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
       case element_type::OBJECT:
         current->iterator.object.idx = dom::object(current->item).begin();
         current->iterator.object.end = dom::object(current->item).end();
+        if (current->iterator.object.idx == current->iterator.object.end) {
+          goto empty;
+        }
         queue.emplace_back(ToObjectAsync::Element((*current->iterator.object.idx).value));
         current = LAST(queue);
         previous = PENULT(queue);
         break;
 
       default:
+      empty:
         // Primitive values -> increment the parent iterator
         // and recurse up as many levels as needed
         bool backtracked;
