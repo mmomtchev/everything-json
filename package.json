@@ -11,12 +11,12 @@
     "lint": "eslint lib/*.js test/*.ts",
     "doc": "documentation readme -f md -s 'Full API' lib/index.d.ts"
   },
-  "name": "json-async",
+  "name": "everything-json",
   "version": "1.0.0",
   "description": "JSON Async",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mmomtchev/json-async.git"
+    "url": "git+https://github.com/mmomtchev/everything-json.git"
   },
   "keywords": [
     "node.js",
@@ -29,9 +29,9 @@
   "author": "Momtchil Momtchev <momtchil@momtchev.com>",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/mmomtchev/json-async/issues"
+    "url": "https://github.com/mmomtchev/everything-json/issues"
   },
-  "homepage": "https://github.com/mmomtchev/json-async#readme",
+  "homepage": "https://github.com/mmomtchev/everything-json#readme",
   "devDependencies": {
     "@types/chai": "^4.3.6",
     "@types/mocha": "^10.0.2",
@@ -49,14 +49,14 @@
     "yieldable-json": "^2.0.1"
   },
   "binary": {
-    "module_name": "json-async",
+    "module_name": "everything-json",
     "module_path": "./lib/binding/{platform}-{arch}",
     "remote_path": "v{version}",
-    "host": "https://github.com/mmomtchev/json-async/releases/download/",
+    "host": "https://github.com/mmomtchev/everything-json/releases/download/",
     "package_name": "{{platform}-{arch}.tar.gz",
     "hosting": {
       "provider": "github",
-      "repo": "mmomtchev/json-async"
+      "repo": "mmomtchev/everything-json"
     }
   },
   "engines": {

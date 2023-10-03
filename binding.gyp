@@ -50,7 +50,7 @@
       'copies': [
         {
           'files': [
-            '<(PRODUCT_DIR)/json-async.node'
+            '<(PRODUCT_DIR)/everything-json.node'
           ],
           'destination': '<(module_path)'
         }

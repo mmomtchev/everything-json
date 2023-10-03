@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { assert } from 'chai';
 
-import { JSON as JSONAsync } from 'json-async';
+import { JSON as JSONAsync } from 'everything-json';
 
 describe('stress', () => {
   const text = fs.readFileSync(path.resolve(__dirname, 'data', 'canada.json'), 'utf8');

@@ -23,14 +23,14 @@ module.exports = b.suite(
   // Using an async function (even when in sync mode) gives
   // node-addon-api a chance to free its buffers
   // See https://github.com/nodejs/node-addon-api/issues/1140
-  b.add('json-async from UTF8 encoded string', async () => {
+  b.add('everything-json from UTF8 encoded string', async () => {
     const document = JSONAsync.parse(testJSON);
     const data = document.get().features.get()[0].get().geometry.get().coordinates.get()[0].get()[0].toObject();
     assert.isArray(data);
     assert.closeTo(data[0], -65.614, 1e-3);
     assert.closeTo(data[1], 43.42, 1e-3);
   }),
-  b.add('json-async from Buffer', async () => {
+  b.add('everything-json from Buffer', async () => {
     const document = JSONAsync.parse(testJSONBuffer);
     const data = document.get().features.get()[0].get().geometry.get().coordinates.get()[0].get()[0].toObject();
     assert.isArray(data);

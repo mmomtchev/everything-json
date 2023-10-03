@@ -5,7 +5,7 @@
     "strictNullChecks": true,
     "target": "ES2015",
     "paths": {
-      "json-async": [
+      "everything-json": [
         "."
       ]
     }

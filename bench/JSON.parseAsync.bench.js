@@ -20,7 +20,7 @@ module.exports = b.suite(
     assert.closeTo(data[0], -65.614, 1e-3);
     assert.closeTo(data[1], 43.42, 1e-3);
   }),
-  b.add('json-async (100% background processing with zero latency)', async () => {
+  b.add('everything-json (100% background processing with zero latency)', async () => {
     const document = await JSONAsync.parseAsync(testJSON);
     const data = document.get().features.get()[0].get().geometry.get().coordinates.get()[0].get()[0].toObject();
     assert.isArray(data);

@@ -1,6 +1,8 @@
-# json-async
+# everything-json
 
-An asynchronous alternative to the built-in Node.js/V8 JSON parser
+An asynchronous alternative to the built-in Node.js/V8 JSON parser with everything.
+
+![Everything Bagel]()
 
 # Background (The IT industry's *JSON* problem)
 
@@ -30,9 +32,9 @@ The Node.js bindings have several modes of operation
 
 `yiedable-json` is the other source of inspiration for this project. It is a pure JavaScript implementation that is also browser compatible. It parses JSON and yields the CPU to the event loop every 5ms. This allows other waiting tasks to continue executing without (too much) delay. Being well-mannered comes at a 5 times slower than `JSON.parse` cost.
 
-# `json-async`
+# `everything-json`
 
-`json-async` tries to combine everything at the price of dropping browser support.
+`everything-json` tries to combine everything at the price of dropping browser support.
 
 It provides a number of different interfaces:
 
@@ -53,7 +55,7 @@ Drilling down the document with `.get()` returns a single indirection level conv
 These two examples convert a subtree of the main document to a JS object.
 
 ```ts
-import { JSON } from 'json-async';
+import { JSON } from 'everything-json';
 const fs = require('fs');
 
 const document = JSON.parse(fs.readFileSync('test/data/canada.json'));
@@ -66,7 +68,7 @@ console.log(document.get().features.get()[0].get().geometry.get()
 ## Async mode
 
 ```ts
-import { JSON } from 'json-async';
+import { JSON } from 'everything-json';
 const fs = require('fs');
 
 const document = await JSON.parseAsync(
@@ -157,3 +159,7 @@ JSON parser.
 *   `text` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** JSON to parse
 
 Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)<[JSON](#json)>**&#x20;
+
+# Copyright
+
+[Bagel Vectors by Vecteezy](https://www.vecteezy.com/free-vector/bagel")
