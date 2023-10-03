@@ -57,7 +57,7 @@
     "module_path": "./lib/binding/{platform}-{arch}",
     "remote_path": "v{version}",
     "host": "https://github.com/mmomtchev/everything-json/releases/download/",
-    "package_name": "{{platform}-{arch}.tar.gz",
+    "package_name": "{platform}-{arch}.tar.gz",
     "hosting": {
       "provider": "github",
       "repo": "mmomtchev/everything-json"
