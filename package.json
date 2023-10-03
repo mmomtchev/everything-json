@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "npx mocha",
-    "lint": "eslint lib/*.js test/*.ts",
+    "lint": "eslint lib/*.cjs test/*.ts",
     "preversion": "npm run lint && npm run test",
     "postversion": "git push && git push --tags && node ./scripts/publish-packages.js",
     "postpublish": "gh workflow run test-package.yml -F version=$npm_package_version",
