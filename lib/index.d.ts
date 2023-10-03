@@ -69,4 +69,18 @@ export class JSON {
    * @default 5
    */
   static latency: number;
+
+  /**
+   * The currently used simdjson version
+   * 
+   * @property {string}
+   */
+  static readonly simdjson_version: string;
+
+  /**
+   * The currently used SIMD implementation
+   * 
+   * @property {string}
+   */
+  static readonly simd: 'icelake' | 'haswell' | 'westmere' | 'arm64' | 'ppc64' | 'fallback';
 }

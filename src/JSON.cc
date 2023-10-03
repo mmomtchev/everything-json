@@ -61,6 +61,16 @@ void JSON::LatencySetter(const CallbackInfo &info, const Napi::Value &val) {
   latency = val.ToNumber().Int32Value();
 }
 
+Value JSON::SIMDGetter(const CallbackInfo &info) {
+  Napi::Env env(info.Env());
+  return String::New(env, get_active_implementation()->name());
+}
+
+Value JSON::SIMDJSONVersionGetter(const CallbackInfo &info) {
+  Napi::Env env(info.Env());
+  return String::New(env, SIMDJSON_VERSION);
+}
+
 Value JSON::Parse(const CallbackInfo &info) {
   Napi::Env env(info.Env());
   auto instance = env.GetInstanceData<InstanceData>();

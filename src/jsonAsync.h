@@ -90,6 +90,8 @@ public:
 
   static Napi::Value LatencyGetter(const CallbackInfo &);
   static void LatencySetter(const CallbackInfo &, const Napi::Value &);
+  static Napi::Value SIMDGetter(const CallbackInfo &);
+  static Napi::Value SIMDJSONVersionGetter(const CallbackInfo &);
 
   static void ProcessRunQueue(uv_async_t *);
 
