@@ -28,9 +28,9 @@ The Node.js bindings have several modes of operation
 *   parsing JSON and creating a native JS object - in which case it is always much slower than the builtin `JSON.parse`
 *   parsing JSON and offering a special API to retrieving the data - which is usually slightly slower than `JSON.parse` for small files and faster for larger files
 
-## [`yiedable-json`](https://github.com/ibmruntimes/yieldable-json)
+## [`yieldable-json`](https://github.com/ibmruntimes/yieldable-json)
 
-`yiedable-json` is the other source of inspiration for this project. It is a pure JavaScript implementation that is also browser compatible. It parses JSON and yields the CPU to the event loop every 5ms. This allows other waiting tasks to continue executing without (too much) delay. Being well-mannered comes at a 5 times slower than `JSON.parse` cost.
+`yieldable-json` is the other source of inspiration for this project. It is a pure JavaScript implementation that is also browser compatible. It parses JSON and yields the CPU to the event loop every 5ms. This allows other waiting tasks to continue executing without (too much) delay. Being well-mannered comes at a 5 times slower than `JSON.parse` cost.
 
 # `everything-json`
 
@@ -162,4 +162,4 @@ Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/
 
 # Copyright
 
-[Bagel Vectors by Vecteezy](https://www.vecteezy.com/free-vector/bagel")
+[Bagel Vectors by Vecteezy](https://www.vecteezy.com/free-vector/bagel)
