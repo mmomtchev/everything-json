@@ -5,6 +5,7 @@ const { assert } = require('chai');
 
 const simdjson = require('simdjson');
 const JSONAsync = require('..').JSON;
+const yieldable = require('yieldable-json');
 
 const testDataPath = path.resolve(__dirname, '..', 'test', 'data');
 const testJSON = fs.readFileSync(path.join(testDataPath, 'canada.json'), 'utf-8');

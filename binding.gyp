@@ -1,6 +1,16 @@
 {
   'target_defaults': {
-    'includes': [ 'except.gypi' ]
+    'includes': [ 'except.gypi' ],
+    'configurations': {
+      'Debug': {
+        'defines': [ 'DEBUG' ],
+        'defines!': [ 'NDEBUG' ]
+      },
+      'Release': {
+        'defines': [ 'NDEBUG' ],
+        'defines!': [ 'DEBUG' ]
+      }
+    }
   },
   'targets': [
     {
@@ -17,8 +27,8 @@
         "<(module_root_dir)/deps"
       ],
       'dependencies': [ "<!(node -p \"require('node-addon-api').gyp\")" ],
-      'cflags': [ '-std=c++17' ],
       'cflags!': [ '-fno-exceptions' ],
+      'cflags_cc': [ '-std=c++17' ],
       'cflags_cc!': [ '-fno-exceptions' ],
       'xcode_settings': {
         'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',

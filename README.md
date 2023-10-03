@@ -38,8 +38,6 @@ It provides a number of different interfaces:
 
 *   `JSONAsync.parse()` parses on the main thread returning an object with a special API. It is comparable to `simdjson.lazyParse`.
 
-    *(currently it appears slightly slower because `node-addon-api` does not free the memory in a completely synchronous context forcing the kernel to allocate new pages that must be cleared - in reality it is slightly faster)*
-
 *   `JSONAsync.parseAsync()` parses in a background thread returning an object with a special API. It allows for near-zero latency JSON processing.
 
 *   `JSONAsync.parse().toObject()` permits to convert any sub-tree of the main document to a native JavaScript object - blocking the event loop just like the built-in parser - it is slower than the built-in parser but it allows to convert only a sub-tree.
