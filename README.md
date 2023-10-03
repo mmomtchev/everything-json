@@ -12,7 +12,7 @@
 
 # Background (The IT industry's *JSON* problem)
 
-JSON has become the de-facto standard for automated exchange of data. Just like everything else in the JavaScript world, it was never designed by a committee. It simply came out of nowhere and slowly replaced what many purists considered to be a superior technology (XML) by extreme simplicity of use and the fact that was so well built-in in JavaScript.
+JSON has become the de-facto standard for automated exchange of data. Just like everything else in the JavaScript world, it was never designed by a committee. It simply came out of nowhere and slowly replaced what many purists considered to be a superior technology (XML) by extreme simplicity of use and the fact that was so well built-in in JavaScript *(JSON goes brrrr)*.
 
 Today, JSON parsing has become a major problem in computing - and many servers spend huge amounts of CPU time doing it.
 
@@ -28,7 +28,7 @@ This means that every time your backend application must import a `xxx` MB JSON,
 
 `simdjson` is a remarkably complex JSON parser that tries to take advantage of the AVX512 SIMD instruction set. It claims a throughput of up to 6 GB/s on a 2.4 GHz CPU. It is currently the fastest JSON parser by far. The official Node.js bindings offer synchronous access to its parser and are the first main source of inspiration for this project.
 
-The Node.js bindings have several modes of operation
+The Node.js bindings have several modes of operation:
 
 *   parsing JSON to check validity - which is usually slightly slower than `JSON.parse` for small files and faster for larger files
 *   parsing JSON and creating a native JS object - in which case it is always much slower than the builtin `JSON.parse`
@@ -85,6 +85,30 @@ console.log(await document.get().features.get()[0].get().geometry.get()
 ```
 
 Be aware that not only reading a file as a `Buffer` is about 3 times faster than reading a file in a `string` with UTF8 encoding, it also avoids a second UTF decoding pass when parsing the JSON data.
+
+## With `Next.js`
+
+`everything-json` can be used with `Next.js` - but only on the server side. It works particularly well with the new `app` router. Simply import it in your server-side component:
+
+```ts
+import { JSON as JSONAsync } from 'everything-json';
+```
+
+then add to your `next.config.js`:
+
+```js
+// Instruct webpack to leave all references to everything-json
+// as external require() statements
+export default {
+  webpack: (config) => {
+    if (config.externals)
+      config.externals.push('everything-json');
+    else
+      config.externals = ['everything-json'];
+    return config;
+  }
+};
+```
 
 # Current status
 
