@@ -47,3 +47,31 @@ jobs:
       - run: npx @mapbox/node-pre-gyp configure --debug
       - run: npx @mapbox/node-pre-gyp build -j max
       - run: npm test
+
+  coverage:
+    runs-on: ${{ matrix.platform }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+      - run: npm install --ignore-scripts
+      - run: npx @mapbox/node-pre-gyp configure --debug --enable_coverage
+      - run: npx @mapbox/node-pre-gyp build -j max
+      - name: Run unit tests
+        run: npx c8 npm test
+      - name: Collect code coverage
+        run: |
+          npm run gcov
+          npm run lcov
+      - uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: coverage

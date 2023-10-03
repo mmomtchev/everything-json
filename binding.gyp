@@ -1,4 +1,7 @@
 {
+  'variables': {
+    'enable_coverage%': 'false'
+  },
   'target_defaults': {
     'includes': [ 'except.gypi' ],
     'configurations': {
@@ -10,7 +13,13 @@
         'defines': [ 'NDEBUG' ],
         'defines!': [ 'DEBUG' ]
       }
-    }
+    },
+    'conditions': [
+      ["enable_coverage == 'true'", {
+        "cflags_cc": [ "-fprofile-arcs", "-ftest-coverage" ],
+        "ldflags" : [ "-lgcov", "--coverage" ]
+      }]
+    ]
   },
   'targets': [
     {
