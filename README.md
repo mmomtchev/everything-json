@@ -99,6 +99,8 @@ Unpublished alpha but should be usable
     *   [parseAsync](#parseasync)
         *   [Parameters](#parameters-1)
     *   [latency](#latency)
+    *   [simdjson\_version](#simdjson_version)
+    *   [simd](#simd)
 
 ## JSON
 
@@ -168,6 +170,18 @@ Allows to change the default latency limit.
 CPU will be yielded every `latency` milliseconds.
 
 Type: [number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)
+
+### simdjson\_version
+
+The currently used simdjson version
+
+Type: [string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)
+
+### simd
+
+The currently used SIMD implementation
+
+Type: (`"icelake"` | `"haswell"` | `"westmere"` | `"arm64"` | `"ppc64"` | `"fallback"`)
 
 # Copyright
 
