@@ -98,6 +98,7 @@ Early alpha, unpublished, highly experimental
         *   [Parameters](#parameters)
     *   [parseAsync](#parseasync)
         *   [Parameters](#parameters-1)
+    *   [latency](#latency)
 
 ## JSON
 
@@ -159,6 +160,14 @@ JSON parser.
 *   `text` **[string](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String)** JSON to parse
 
 Returns **[Promise](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise)<[JSON](#json)>**&#x20;
+
+### latency
+
+Allows to change the default latency limit.
+
+CPU will be yielded every `latency` milliseconds.
+
+Type: [number](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number)
 
 # Copyright
 

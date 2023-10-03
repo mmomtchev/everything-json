@@ -71,9 +71,12 @@ struct Context {
 };
 
 class JSON : public ObjectWrap<JSON>, JSONElementContext {
+  static unsigned latency;
+
   static Napi::Value ToObject(Napi::Env, const element &);
   static void ToObjectAsync(shared_ptr<ToObjectAsync::Context>, high_resolution_clock::time_point);
   static shared_ptr<padded_string> GetString(const CallbackInfo &);
+  static inline bool CanRun(const high_resolution_clock::time_point &);
 
 public:
   JSON(const CallbackInfo &);
@@ -84,6 +87,9 @@ public:
   Napi::Value Get(const CallbackInfo &);
   Napi::Value ToObject(const CallbackInfo &);
   Napi::Value ToObjectAsync(const CallbackInfo &);
+
+  static Napi::Value LatencyGetter(const CallbackInfo &);
+  static void LatencySetter(const CallbackInfo &, const Napi::Value &);
 
   static void ProcessRunQueue(uv_async_t *);
 

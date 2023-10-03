@@ -27,7 +27,7 @@ shared_ptr<padded_string> JSON::GetString(const CallbackInfo &info) {
   Napi::Env env(info.Env());
 
   if (info.Length() != 1 || (!info[0].IsString() && !info[0].IsBuffer())) {
-    throw Error::New(env, "JSON.Parse expects a single string or Buffer argument");
+    throw TypeError::New(env, "JSON.Parse expects a single string or Buffer argument");
   }
 
   auto parser_ = make_shared<parser>();
@@ -44,7 +44,21 @@ shared_ptr<padded_string> JSON::GetString(const CallbackInfo &info) {
     return json;
   }
 
-  throw Error::New(env, "JSON.Parse expects a single string or Buffer argument");
+  throw TypeError::New(env, "JSON.Parse expects a single string or Buffer argument");
+}
+
+unsigned JSON::latency = 5;
+
+Value JSON::LatencyGetter(const CallbackInfo &info) {
+  Napi::Env env(info.Env());
+  return Number::New(env, latency);
+}
+
+void JSON::LatencySetter(const CallbackInfo &info, const Napi::Value &val) {
+  Napi::Env env(info.Env());
+  if (!val.IsNumber() || val.ToNumber().Int32Value() <= 0)
+    throw TypeError::New(env, "Invalid value, must be a positive number in milliseconds");
+  latency = val.ToNumber().Int32Value();
 }
 
 Value JSON::Parse(const CallbackInfo &info) {

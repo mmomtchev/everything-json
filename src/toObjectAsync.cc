@@ -9,8 +9,8 @@ Context::Context(Napi::Env _env, Napi::Value _self)
 
 } // namespace ToObjectAsync
 
-static inline bool CanRun(const high_resolution_clock::time_point &start) {
-  return duration_cast<milliseconds>(high_resolution_clock::now() - start).count() < 5;
+inline bool JSON::CanRun(const high_resolution_clock::time_point &start) {
+  return duration_cast<milliseconds>(high_resolution_clock::now() - start).count() < latency;
 }
 
 // Process the micro task queue

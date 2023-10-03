@@ -59,4 +59,14 @@ export class JSON {
    * @returns {Promise<any>}
    */
   toObjectAsync(): Promise<any>;
+
+  /**
+   * Allows to change the default latency limit.
+   * 
+   * CPU will be yielded every `latency` milliseconds.
+   * 
+   * @property {number}
+   * @default 5
+   */
+  static latency: number;
 }

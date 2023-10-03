@@ -8,6 +8,7 @@ Function JSON::GetClass(Napi::Env env) {
                          JSON::InstanceMethod<&JSON::ToObjectAsync>("toObjectAsync"),
                          JSON::StaticMethod<&JSON::Parse>("parse"),
                          JSON::StaticMethod<&JSON::ParseAsync>("parseAsync"),
+                         JSON::StaticAccessor<&JSON::LatencyGetter, &JSON::LatencySetter>("latency"),
                      });
 }
 

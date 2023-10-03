@@ -73,3 +73,12 @@ describe('from Buffer', () => {
       .catch(done);
   });
 });
+
+describe('latency', () => {
+  it('must have a configurable latency', () => {
+    assert.isNumber(JSONAsync.latency);
+    assert.strictEqual(JSONAsync.latency, 5);
+    JSONAsync.latency = 10;
+    assert.strictEqual(JSONAsync.latency, 10);
+  });
+});
