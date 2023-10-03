@@ -8,6 +8,7 @@ const JSONAsync = require('..').JSON;
 
 const testDataPath = path.resolve(__dirname, '..', 'test', 'data');
 const testJSON = fs.readFileSync(path.join(testDataPath, 'canada.json'), 'utf-8');
+const testJSONBuffer = fs.readFileSync(path.join(testDataPath, 'canada.json'));
 
 module.exports = b.suite(
   'Synchronous JSON parsing, accessing 1 element through each API\'s fastest interface',
@@ -19,8 +20,15 @@ module.exports = b.suite(
     assert.closeTo(data[0], -65.614, 1e-3);
     assert.closeTo(data[1], 43.42, 1e-3);
   }),
-  b.add('json-async', () => {
+  b.add('json-async from UTF8 encoded string', () => {
     const document = JSONAsync.parse(testJSON);
+    const data = document.get().features.get()[0].get().geometry.get().coordinates.get()[0].get()[0].toObject();
+    assert.isArray(data);
+    assert.closeTo(data[0], -65.614, 1e-3);
+    assert.closeTo(data[1], 43.42, 1e-3);
+  }),
+  b.add('json-async from Buffer', () => {
+    const document = JSONAsync.parse(testJSONBuffer);
     const data = document.get().features.get()[0].get().geometry.get().coordinates.get()[0].get()[0].toObject();
     assert.isArray(data);
     assert.closeTo(data[0], -65.614, 1e-3);

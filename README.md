@@ -58,7 +58,7 @@ These two examples convert a subtree of the main document to a JS object.
 import { JSON } from 'json-async';
 const fs = require('fs');
 
-const document = JSON.parse(fs.readFileSync('test/data/canada.json', 'utf8'));
+const document = JSON.parse(fs.readFileSync('test/data/canada.json'));
 // With the built-in JSON parser, this would have been equivalent to
 // console.log(document.features[0].geometry.coordinates[10])
 console.log(document.get().features.get()[0].get().geometry.get()
@@ -72,11 +72,13 @@ import { JSON } from 'json-async';
 const fs = require('fs');
 
 const document = await JSON.parseAsync(
-  await fs.promises.readFile('test/data/canada.json', 'utf8'));
+  await fs.promises.readFile('test/data/canada.json'));
 
 console.log(await document.get().features.get()[0].get().geometry.get()
   .coordinates.get()[10].toObjectAsync());
 ```
+
+Be aware that not only reading a file as a `Buffer` is about 3 times faster than reading a file in a `string` with UTF8 encoding, it also avoids a second UTF decoding pass when parsing the JSON data.
 
 # Current status
 

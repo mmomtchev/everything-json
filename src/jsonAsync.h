@@ -73,6 +73,7 @@ struct Context {
 class JSON : public ObjectWrap<JSON>, JSONElementContext {
   static Napi::Value ToObject(Napi::Env, const element &);
   static void ToObjectAsync(shared_ptr<ToObjectAsync::Context>, high_resolution_clock::time_point);
+  static shared_ptr<padded_string> GetString(const CallbackInfo &);
 
 public:
   JSON(const CallbackInfo &);

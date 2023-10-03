@@ -28,17 +28,8 @@ Value JSON::ParseAsync(const CallbackInfo &info) {
 
   Napi::Env env(info.Env());
 
-  if (info.Length() != 1 || !info[0].IsString()) {
-    auto deferred = Promise::Deferred::New(env);
-    deferred.Reject(Error::New(env, "JSON.Parse expects a single string argument").Value());
-    return deferred.Promise();
-  }
-
   auto parser_ = make_shared<parser>();
-  size_t json_len;
-  napi_get_value_string_utf8(env, info[0], nullptr, 0, &json_len);
-  auto json_text = make_shared<padded_string>(json_len);
-  napi_get_value_string_utf8(env, info[0], json_text->data(), json_len + 1, nullptr);
+  auto json_text = GetString(info);
   auto worker = new ParserAsyncWorker(env, json_text);
 
   worker->Queue();

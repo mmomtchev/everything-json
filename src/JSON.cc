@@ -6,8 +6,7 @@ JSONElementContext::JSONElementContext(const shared_ptr<padded_string> &_input_t
 
 JSONElementContext::JSONElementContext() {}
 
-JSON::JSON(const CallbackInfo &info)
-    : ObjectWrap<JSON>(info) {
+JSON::JSON(const CallbackInfo &info) : ObjectWrap<JSON>(info) {
   Napi::Env env(info.Env());
 
   if (info.Length() != 1 || !info[0].IsExternal()) {
@@ -24,19 +23,36 @@ JSON::JSON(const CallbackInfo &info)
 
 JSON::~JSON() {}
 
+shared_ptr<padded_string> JSON::GetString(const CallbackInfo &info) {
+  Napi::Env env(info.Env());
+
+  if (info.Length() != 1 || (!info[0].IsString() && !info[0].IsBuffer())) {
+    throw Error::New(env, "JSON.Parse expects a single string or Buffer argument");
+  }
+
+  auto parser_ = make_shared<parser>();
+
+  size_t json_len;
+  if (info[0].IsString()) {
+    napi_get_value_string_utf8(env, info[0], nullptr, 0, &json_len);
+    auto json = make_shared<padded_string>(json_len);
+    napi_get_value_string_utf8(env, info[0], json->data(), json_len + 1, nullptr);
+    return json;
+  } else if (info[0].IsBuffer()) {
+    auto buffer = info[0].As<Buffer<char>>();
+    auto json = make_shared<padded_string>(buffer.Data() + buffer.ByteOffset(), buffer.ByteLength());
+    return json;
+  }
+
+  throw Error::New(env, "JSON.Parse expects a single string or Buffer argument");
+}
+
 Value JSON::Parse(const CallbackInfo &info) {
   Napi::Env env(info.Env());
   auto instance = env.GetInstanceData<InstanceData>();
 
-  if (info.Length() != 1 || !info[0].IsString()) {
-    throw Error::New(env, "JSON.Parse expects a single string argument");
-  }
-
   auto parser_ = make_shared<parser>();
-  size_t json_len;
-  napi_get_value_string_utf8(env, info[0], nullptr, 0, &json_len);
-  auto json = make_shared<padded_string>(json_len);
-  napi_get_value_string_utf8(env, info[0], json->data(), json_len + 1, nullptr);
+  auto json = GetString(info);
   auto document = make_shared<element>(parser_->parse(*json));
 
   JSONElementContext context(json, parser_, document, *document.get());

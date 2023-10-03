@@ -14,7 +14,7 @@ export class JSON {
    * @param {string} text JSON to parse
    * @returns {JSON}
    */
-  static parse(text: string): JSON;
+  static parse(text: string | Buffer): JSON;
 
   /**
    * Parse a string and return its binary representation.
@@ -27,7 +27,7 @@ export class JSON {
    * @param {string} text JSON to parse
    * @returns {Promise<JSON>}
    */
-  static parseAsync(text: string): Promise<JSON>;
+  static parseAsync(text: string | Buffer): Promise<JSON>;
 
   /**
    * Retrieve a subtree out of the binary JSON object
