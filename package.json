@@ -36,6 +36,10 @@
     "url": "https://github.com/mmomtchev/everything-json/issues"
   },
   "homepage": "https://github.com/mmomtchev/everything-json#readme",
+  "exports": {
+    "import": "./lib/index.mjs",
+    "require": "./lib/index.cjs"
+  },
   "devDependencies": {
     "@octokit/core": "^5.0.1",
     "@types/chai": "^4.3.6",
