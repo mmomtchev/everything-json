@@ -11,6 +11,8 @@ const jsonText = zlib.unzipSync(fs.readFileSync(path.resolve(__dirname, 'data', 
 it('toObjectAsync() yields the CPU', function (done) {
   this.timeout(30000);
   this.retries(3);
+  // @ts-ignore
+  if (JSONAsync.debug) this.skip();
 
   // We start counting the elapsed time
   // and we launch a regular tick every 10ms
