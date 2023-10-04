@@ -4,15 +4,16 @@
 
 *   [JSON][1]
     *   [get][2]
-    *   [toObject][3]
-    *   [toObjectAsync][4]
-    *   [parse][5]
-        *   [Parameters][6]
-    *   [parseAsync][7]
-        *   [Parameters][8]
-    *   [latency][9]
-    *   [simdjson\_version][10]
-    *   [simd][11]
+    *   [expand][3]
+    *   [toObject][4]
+    *   [toObjectAsync][5]
+    *   [parse][6]
+        *   [Parameters][7]
+    *   [parseAsync][8]
+        *   [Parameters][9]
+    *   [latency][10]
+    *   [simdjson\_version][11]
+    *   [simd][12]
 
 ## JSON
 
@@ -20,9 +21,16 @@ A binary representation of a JSON element
 
 ### get
 
-Retrieve a subtree out of the binary JSON object
+Retrieve a subtree out of the binary JSON object.
 
-Returns **([string][12] | [boolean][13] | [number][14] | [Array][15]<[JSON][1]> | Record<[string][12], [JSON][1]>)**&#x20;
+Returns **([string][13] | [boolean][14] | [number][15] | null | [Array][16]<[JSON][1]> | Record<[string][13], [JSON][1]>)**&#x20;
+
+### expand
+
+Retrieve a subtree out of the binary JSON object
+automatically expanding primitive values.
+
+Returns **([Array][16]<([JSON][1] | [string][13] | [boolean][14] | [number][15] | null)> | Record<[string][13], ([JSON][1] | [string][13] | [boolean][14] | [number][15] | null)> | [string][13] | [boolean][14] | [number][15] | null)**&#x20;
 
 ### toObject
 
@@ -41,10 +49,11 @@ Converts the binary representation to a JS object.
 
 Uses the main thread, but periodically yields the CPU
 to allow other tasks to run.
+
 Allows to convert only a small subtree out of a larger
 document.
 
-Returns **[Promise][16]\<any>**&#x20;
+Returns **[Promise][17]\<any>**&#x20;
 
 ### parse
 
@@ -56,7 +65,7 @@ to the built-in JSON parser.
 
 #### Parameters
 
-*   `text` **[string][12]** JSON to parse
+*   `text` **[string][13]** JSON to parse
 
 Returns **[JSON][1]**&#x20;
 
@@ -71,9 +80,9 @@ JSON parser.
 
 #### Parameters
 
-*   `text` **[string][12]** JSON to parse
+*   `text` **[string][13]** JSON to parse
 
-Returns **[Promise][16]<[JSON][1]>**&#x20;
+Returns **[Promise][17]<[JSON][1]>**&#x20;
 
 ### latency
 
@@ -81,17 +90,17 @@ Allows to change the default latency limit.
 
 CPU will be yielded every `latency` milliseconds.
 
-Type: [number][14]
+Type: [number][15]
 
 ### simdjson\_version
 
-The currently used simdjson version
+The currently used simdjson version.
 
-Type: [string][12]
+Type: [string][13]
 
 ### simd
 
-The currently used SIMD implementation
+The currently used SIMD implementation.
 
 Type: (`"icelake"` | `"haswell"` | `"westmere"` | `"arm64"` | `"ppc64"` | `"fallback"`)
 
@@ -99,30 +108,32 @@ Type: (`"icelake"` | `"haswell"` | `"westmere"` | `"arm64"` | `"ppc64"` | `"fall
 
 [2]: #get
 
-[3]: #toobject
+[3]: #expand
 
-[4]: #toobjectasync
+[4]: #toobject
 
-[5]: #parse
+[5]: #toobjectasync
 
-[6]: #parameters
+[6]: #parse
 
-[7]: #parseasync
+[7]: #parameters
 
-[8]: #parameters-1
+[8]: #parseasync
 
-[9]: #latency
+[9]: #parameters-1
 
-[10]: #simdjson_version
+[10]: #latency
 
-[11]: #simd
+[11]: #simdjson_version
 
-[12]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
+[12]: #simd
 
-[13]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+[13]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
 
-[14]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
+[14]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
 
-[15]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
+[15]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
 
-[16]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
+[16]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
+
+[17]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
