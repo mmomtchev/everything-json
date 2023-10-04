@@ -18,18 +18,24 @@ inline bool JSON::CanRun(const high_resolution_clock::time_point &start) {
 }
 
 // Process the micro task queue
+// (this is a process.nextTick re-implemented in C++)
 void JSON::ProcessRunQueue(uv_async_t *handle) {
   const auto start(high_resolution_clock::now());
 
   while (!runQueue.empty() && CanRun(start)) {
+    // An operation that has finished will have its state
+    // deleted by args going out of scope
     auto args = runQueue.front();
     ToObjectAsync(args, start);
     runQueue.pop();
   }
 
   if (!runQueue.empty()) {
+    // More work, ask libuv to call us back after
+    // one full event loop iteration
     uv_async_send(handle);
   } else {
+    // No more work, do not block the process exit
     uv_unref(reinterpret_cast<uv_handle_t *>(handle));
   }
 }
@@ -38,6 +44,8 @@ void JSON::ProcessRunQueue(uv_async_t *handle) {
 Value JSON::ToObjectAsync(const CallbackInfo &info) {
   Napi::Env env(info.Env());
 
+  // The ToObjectAsync state is created here and it exists
+  // as long as it sits on the queue
   auto state = make_shared<ToObjectAsync::Context>(env, info.This());
   state->queue.emplace_back(ToObjectAsync::Element(root));
   ToObjectAsync(state, high_resolution_clock::now());
@@ -214,9 +222,12 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
     assert(!state->top.IsEmpty());
     state->deferred.Resolve(state->top.Value());
   } else {
+    // Put us back in the line
     runQueue.push(state);
     auto instance = env.GetInstanceData<InstanceData>();
+    // Do not allow the Node.js process to exit, we are not finished
     uv_ref(reinterpret_cast<uv_handle_t *>(&instance->runQueueJob));
+    // Ask libuv to call the micro task handler after one event loop iteration
     uv_async_send(&instance->runQueueJob);
   }
 }
