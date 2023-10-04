@@ -93,13 +93,20 @@ export default {
 When used in TypeScript `everything-json` supports carrying over the structure of your document via the use of generics:
 
 ```ts
-type S = {
+interface S {
   number: number,
   array: number[];
 };
 
-const document = JSONAsync.parse<S>(json).get();
-// document will have its type correctly deduced as JSON<{ number: JSON<number>, array: JSON<number[]> }>
+const document = JSON.parse<S>(json).get();
+// document will have its type correctly deduced as
+// JSON<{ number: JSON<number>, array: JSON<number[]> }>
+```
+
+This is particularly useful when parsing GeoJSON with the `@types/geojson` package: 
+```ts
+import type { FeatureCollection } from 'geojson';
+const document = JSON.parse<FeatureCollection>(geojson);
 ```
 
 # Current status

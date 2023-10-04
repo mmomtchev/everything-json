@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { assert } from 'chai';
+import type { FeatureCollection, Polygon } from 'geojson';
 
 import { JSON as JSONAsync } from 'everything-json';
 
@@ -9,18 +10,21 @@ describe('from string', () => {
   const expected = JSON.parse(text);
 
   it('get()', () => {
-    const document = JSONAsync.parse(text);
+    const document = JSONAsync.parse<FeatureCollection>(text);
     assert.isObject(document.get());
     assert.sameMembers(Object.keys(document.get()), ['type', 'features']);
     const features = document.get().features.get();
     assert.isArray(features);
     assert.instanceOf(features[0], JSONAsync);
-    assert.closeTo(features[0].get()['geometry'].get()['coordinates'].get()[10].get()[2].get()[0].get(), -55.946, 1e-3);
-    assert.closeTo(features[0].get()['geometry'].get()['coordinates'].get()[10].get()[2].expand()[0], -55.946, 1e-3);
+
+    assert.closeTo((features[0].get()['geometry'] as JSONAsync<Polygon>)
+      .get()['coordinates'].get()[10].get()[2].get()[0].get(), -55.946, 1e-3);
+    assert.closeTo((features[0].get()['geometry'] as JSONAsync<Polygon>)
+      .get()['coordinates'].get()[10].get()[2].expand()[0], -55.946, 1e-3);
   });
 
   it('toObject()', () => {
-    const document = JSONAsync.parse(text);
+    const document = JSONAsync.parse<FeatureCollection>(text);
     const geometry = document.get().features.get()[0].get()['geometry'].toObject();
     assert.deepEqual(geometry, expected.features[0].geometry);
   });
