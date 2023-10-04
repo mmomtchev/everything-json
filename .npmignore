@@ -1,0 +1,12 @@
+.vscode
+.git
+.github
+Attic
+node_modules
+build
+lib/binding
+coverage
+everything-bagel.eps.xz
+test
+bench
+examples.js
