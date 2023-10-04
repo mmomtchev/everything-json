@@ -42,7 +42,7 @@ export class JSON<T = any> {
    * Retrieve a subtree out of the binary JSON object
    * automatically expanding primitive values.
    * 
-   * @returns {(JSON | string | boolean | number | null) [] | Record<string, JSON | string | boolean | number | null>}
+   * @returns {(JSON | string | boolean | number | null) [] | Record<string, JSON | string | boolean | number | null> | string | boolean | number | null}
    */
   expand(): T extends Record<string | number, any> ? {
     [P in keyof T]: T[P] extends Record<string | number, any> ? JSON<T[P]> : T[P];
