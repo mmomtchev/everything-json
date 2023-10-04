@@ -1,7 +1,7 @@
 /**
  * A binary representation of a JSON element
  */
-export class JSON<T> {
+export class JSON<T = any> {
   constructor();
 
   /**
@@ -48,7 +48,7 @@ export class JSON<T> {
    * 
    * @returns {any}
    */
-  toObject(): any;
+  toObject(): T;
 
   /**
    * Converts the binary representation to a JS object.
@@ -60,7 +60,7 @@ export class JSON<T> {
    * 
    * @returns {Promise<any>}
    */
-  toObjectAsync(): Promise<any>;
+  toObjectAsync(): Promise<T>;
 
   /**
    * Allows to change the default latency limit.
