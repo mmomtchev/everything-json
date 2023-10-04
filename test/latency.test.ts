@@ -33,11 +33,11 @@ it('toObjectAsync() yields the CPU', function (done) {
 
       const elapsed = Date.now() - start;
       assert.isAtLeast(ticks, elapsed / 10 * 0.75);
+      done();
     })
     .catch(done)
     .then(() => {
       JSONAsync.latency = 5;
       clearInterval(timer);
-      done();
     });
 });
