@@ -83,6 +83,20 @@ export default {
 };
 ```
 
+# Using structured JSON in TypeScript
+
+When used in TypeScript `everything-json` supports carrying over the structure of your document via the use of generics:
+
+```ts
+type S = {
+  number: number,
+  array: number[];
+};
+
+const document = JSONAsync.parse<S>(json).get();
+// document will have its type correctly deduced as JSON<{ number: number, array: JSON<number[]> }>
+```
+
 # Current status
 
 Usable alpha version
