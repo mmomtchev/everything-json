@@ -49,6 +49,22 @@ describe('from string', () => {
       })
       .catch(done);
   });
+
+  it('parse() throws on invalid JSON', () => {
+    assert.throws(() => {
+      JSONAsync.parse('invalid JSON');
+    }, /TAPE_ERROR: The JSON document has an improper structure/);
+  });
+
+  it('parseAsync() throws on invalid JSON', () => {
+    JSONAsync.parseAsync('invalid JSON')
+      .then(() => {
+        throw new Error('did not throw');
+      })
+      .catch((e) => {
+        assert.match(e, /TAPE_ERROR: The JSON document has an improper structure/);
+      });
+  });
 });
 
 describe('from Buffer', () => {

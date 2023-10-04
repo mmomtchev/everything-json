@@ -75,15 +75,19 @@ Value JSON::Parse(const CallbackInfo &info) {
   Napi::Env env(info.Env());
   auto instance = env.GetInstanceData<InstanceData>();
 
-  auto parser_ = make_shared<parser>();
-  auto json = GetString(info);
-  auto document = make_shared<element>(parser_->parse(*json));
+  try {
+    auto parser_ = make_shared<parser>();
+    auto json = GetString(info);
+    auto document = make_shared<element>(parser_->parse(*json));
 
-  JSONElementContext context(json, parser_, document, *document.get());
+    JSONElementContext context(json, parser_, document, *document.get());
 
-  napi_value ctor_args = External<JSONElementContext>::New(env, &context);
-  auto r = instance->JSON_ctor.Value().New(1, &ctor_args);
-  return r;
+    napi_value ctor_args = External<JSONElementContext>::New(env, &context);
+    auto r = instance->JSON_ctor.Value().New(1, &ctor_args);
+    return r;
+  } catch (const exception &err) {
+    throw Error::New(env, err.what());
+  }
 }
 
 Value JSON::GetPrimitive(Napi::Env env, const element &el) {
@@ -110,45 +114,49 @@ Value JSON::Get(const CallbackInfo &info) {
   auto instance = env.GetInstanceData<InstanceData>();
   Napi::Value sub;
 
-  switch (root.type()) {
-  case element_type::ARRAY: {
-    size_t len = dom::array(root).size();
-    auto array = Array::New(env, len);
+  try {
+    switch (root.type()) {
+    case element_type::ARRAY: {
+      size_t len = dom::array(root).size();
+      auto array = Array::New(env, len);
 
-    JSONElementContext context(*this);
-    napi_value ctor_args = External<JSONElementContext>::New(env, &context);
+      JSONElementContext context(*this);
+      napi_value ctor_args = External<JSONElementContext>::New(env, &context);
 
-    size_t i = 0;
-    for (element child : dom::array(root)) {
-      if (child.is_array() || child.is_object()) {
-        context.root = child;
-        sub = instance->JSON_ctor.Value().New(1, &ctor_args);
-      } else
-        sub = GetPrimitive(env, child);
-      array.Set(i, sub);
-      i++;
+      size_t i = 0;
+      for (element child : dom::array(root)) {
+        if (child.is_array() || child.is_object()) {
+          context.root = child;
+          sub = instance->JSON_ctor.Value().New(1, &ctor_args);
+        } else
+          sub = GetPrimitive(env, child);
+        array.Set(i, sub);
+        i++;
+      }
+      return array;
     }
-    return array;
-  }
-  case element_type::OBJECT: {
-    auto object = Object::New(env);
+    case element_type::OBJECT: {
+      auto object = Object::New(env);
 
-    JSONElementContext context(*this);
-    napi_value ctor_args = External<JSONElementContext>::New(env, &context);
+      JSONElementContext context(*this);
+      napi_value ctor_args = External<JSONElementContext>::New(env, &context);
 
-    for (auto field : dom::object(root)) {
-      const auto &child = field.value;
-      if (child.is_array() || child.is_object()) {
-        context.root = child;
-        sub = instance->JSON_ctor.Value().New(1, &ctor_args);
-      } else
-        sub = GetPrimitive(env, child);
-      object.Set(field.key.data(), sub);
+      for (auto field : dom::object(root)) {
+        const auto &child = field.value;
+        if (child.is_array() || child.is_object()) {
+          context.root = child;
+          sub = instance->JSON_ctor.Value().New(1, &ctor_args);
+        } else
+          sub = GetPrimitive(env, child);
+        object.Set(field.key.data(), sub);
+      }
+      return object;
     }
-    return object;
-  }
-  default:
-    return GetPrimitive(env, root);
+    default:
+      return GetPrimitive(env, root);
+    }
+  } catch (const exception &err) {
+    throw Error::New(env, err.what());
   }
 
   throw Error::New(env, "Invalid JSON element");
