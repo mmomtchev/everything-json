@@ -1,6 +1,6 @@
 # Changelog
 
-### [0.9.3]
+### [0.9.3] 2023-10-04
 
  - A new method `.expand()` returns primitive values as JavaScript values instead of a `JSON` object with a single primitive value
  - Support automatic carrying over of complex TypeScript types via generics
