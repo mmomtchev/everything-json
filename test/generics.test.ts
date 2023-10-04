@@ -68,7 +68,8 @@ describe('TypeScript generics', () => {
   });
 
   it('toObjectAsync()', (done) => {
-    JSONAsync.parse<typeof structured>(JSONtext).toObjectAsync()
+    JSONAsync.parseAsync<typeof structured>(JSONtext)
+      .then((json) => json.toObjectAsync())
       .then((document) => {
         const object = document;
         assert.isObject(object);
