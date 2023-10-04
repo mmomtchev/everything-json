@@ -1,5 +1,9 @@
 # Changelog
 
+### [1.0.0]
+
+ - `.get()` now returns primitive values as JavaScript values instead of a `JSON` object with a single primitive value
+
 ### [0.9.2] 2023-10-03
 
 - Add an `exports` object to `package.json` for ES6 compatibility

@@ -16,11 +16,14 @@ Read it [here](https://github.com/mmomtchev/everything-json/blob/main/doc/Introd
 
 # Usage
 
-`everything-json` is a two-stage JSON parser based on `simdjson`. Its first pass creates a binary representation of the JSON data. This pass is independent of V8 and can be performed asynchronously in a background thread without any effect on the event loop by calling `JSON.parseAsync()` instead of `JSON.parse()`. The resulting object, of `JSON` type, can be recursively decoded using its `.get()` method which returns a single level of indirection: `null | bool | number | string | JSON[] | Record<string, JSON>`, or using its `.toObject()` method which returns the full sub-tree as a native JS object - just like the native `JSON.parse()`.
+`everything-json` is a two-stage JSON parser based on `simdjson`. Its first pass creates a binary representation of the JSON data. This pass is independent of V8 and can be performed asynchronously in a background thread without any effect on the event loop by calling `JSON.parseAsync()` instead of `JSON.parse()`. The resulting object, of `JSON` type, can be recursively decoded using its `.get()` method which returns a single level of indirection or using its `.toObject()` method which returns the full sub-tree as a native JS object - just like the native `JSON.parse()`.
 
 Due to the limitations of the V8 engine, the second stage - `.get()` / `.toObject()` / `.toObjectAsync()` can only be performed on the main thread.
 
-.`get()` is usually fast enough - unless dealing with a huge array - and it can be used synchronously without incurring (almost) any latency.
+.`get()` is usually fast enough - unless dealing with a huge array - and it can be used synchronously without incurring (almost) any latency. `.get()` returns
+
+    Array(JSON | string | boolean | number | null) |
+    Record<string, JSON | string | boolean | number | null>
 
 `.toObject()` works just like the built-in `JSON.parse()`. It can block the event loop for significant amounts of time. It is slower than the built-in parser but it allows to convert only a subtree of the main document - by first drilling down with `.get()` to reach it.
 

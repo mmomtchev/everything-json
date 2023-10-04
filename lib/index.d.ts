@@ -32,7 +32,7 @@ export class JSON {
   /**
    * Retrieve a subtree out of the binary JSON object
    * 
-   * @returns {string | boolean | number | JSON[] | Record<string, JSON>}
+   * @returns {(JSON | string | boolean | number | null) [] | Record<string, JSON | string | boolean | number | null>}
    */
   get(): any;
 

@@ -86,9 +86,29 @@ Value JSON::Parse(const CallbackInfo &info) {
   return r;
 }
 
+Value JSON::GetPrimitive(Napi::Env env, const element &el) {
+  switch (el.type()) {
+  case element_type::STRING: {
+    return String::New(env, el.get_c_str());
+  }
+  case element_type::DOUBLE:
+  case element_type::INT64:
+  case element_type::UINT64:
+    return Number::New(env, (double)(el));
+  case element_type::BOOL:
+    return Boolean::New(env, (bool)(el));
+  case element_type::NULL_VALUE:
+    return env.Null();
+  default:
+    throw Error::New(env, "Invalid JSON element");
+  }
+  throw Error::New(env, "Invalid JSON element");
+}
+
 Value JSON::Get(const CallbackInfo &info) {
   Napi::Env env(info.Env());
   auto instance = env.GetInstanceData<InstanceData>();
+  Napi::Value sub;
 
   switch (root.type()) {
   case element_type::ARRAY: {
@@ -100,8 +120,11 @@ Value JSON::Get(const CallbackInfo &info) {
 
     size_t i = 0;
     for (element child : dom::array(root)) {
-      context.root = child;
-      auto sub = instance->JSON_ctor.Value().New(1, &ctor_args);
+      if (child.is_array() || child.is_object()) {
+        context.root = child;
+        sub = instance->JSON_ctor.Value().New(1, &ctor_args);
+      } else
+        sub = GetPrimitive(env, child);
       array.Set(i, sub);
       i++;
     }
@@ -114,24 +137,18 @@ Value JSON::Get(const CallbackInfo &info) {
     napi_value ctor_args = External<JSONElementContext>::New(env, &context);
 
     for (auto field : dom::object(root)) {
-      context.root = field.value;
-      auto sub = instance->JSON_ctor.Value().New(1, &ctor_args);
+      const auto &child = field.value;
+      if (child.is_array() || child.is_object()) {
+        context.root = child;
+        sub = instance->JSON_ctor.Value().New(1, &ctor_args);
+      } else
+        sub = GetPrimitive(env, child);
       object.Set(field.key.data(), sub);
     }
     return object;
   }
-  case element_type::STRING: {
-    auto string = String::New(env, root.get_c_str());
-    return string;
-  }
-  case element_type::DOUBLE:
-  case element_type::INT64:
-  case element_type::UINT64:
-    return Number::New(env, (double)(root));
-  case element_type::BOOL:
-    return Boolean::New(env, (bool)(root));
-  case element_type::NULL_VALUE:
-    return env.Null();
+  default:
+    return GetPrimitive(env, root);
   }
 
   throw Error::New(env, "Invalid JSON element");
