@@ -180,8 +180,6 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
             previous->iterator.array.idx++;
             if (previous->iterator.array.idx == previous->iterator.array.end) {
               backtracked = true;
-              if (!current->ref.IsEmpty())
-                current->ref.Reset();
               queue.pop_back();
               current = LAST(queue);
               previous = PENULT(queue);
@@ -194,8 +192,6 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
             previous->iterator.object.idx++;
             if (previous->iterator.object.idx == previous->iterator.object.end) {
               backtracked = true;
-              if (!current->ref.IsEmpty())
-                current->ref.Reset();
               queue.pop_back();
               current = LAST(queue);
               previous = PENULT(queue);
