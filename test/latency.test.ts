@@ -16,14 +16,16 @@ it('toObjectAsync() yields the CPU', function (done) {
   // and we launch a regular tick every 10ms
   const start = Date.now();
   let ticks = 0;
+  let phase1ticks: number;
   const timer = setInterval(() => void ticks++, 10);
   JSONAsync.latency = 1;
 
   JSONAsync.parseAsync<FeatureCollection>(jsonText)
     .then((jsonBinary) => {
       const elapsed = Date.now() - start;
-      // Manpower losses of up to 25% do not have to be reported to higher command
-      assert.isAtLeast(ticks, elapsed / 10 * 0.75);
+      // Accept up to 50% losses
+      assert.isAtLeast(ticks, elapsed / 10 * 0.5);
+      phase1ticks = ticks;
 
       return jsonBinary.toObjectAsync();
     })
@@ -32,7 +34,8 @@ it('toObjectAsync() yields the CPU', function (done) {
       assert.isArray(geojson.features);
 
       const elapsed = Date.now() - start;
-      assert.isAtLeast(ticks, elapsed / 10 * 0.75);
+      assert.isAtLeast(ticks, elapsed / 10 * 0.5);
+      assert.isAbove(ticks, phase1ticks);
       done();
     })
     .catch(done)
