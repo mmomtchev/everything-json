@@ -12,6 +12,9 @@ Function JSON::GetClass(Napi::Env env) {
                          JSON::StaticAccessor<&JSON::LatencyGetter, &JSON::LatencySetter>("latency"),
                          JSON::StaticAccessor<&JSON::SIMDJSONVersionGetter>("simdjson_version"),
                          JSON::StaticAccessor<&JSON::SIMDGetter>("simd"),
+#ifdef DEBUG
+                         JSON::StaticValue("debug", Boolean::New(env, true)),
+#endif
                      });
 }
 
