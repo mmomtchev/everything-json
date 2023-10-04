@@ -24,10 +24,36 @@ describe('TypeScript generics', () => {
     assert.isObject(object);
 
     const array = object.array.get();
+    assert.isArray<JSONAsync[]>(array);
+    assert.isNumber<number>(array[1].get());
+
+    const subObject = object.object.get();
+    assert.isObject(subObject);
+    assert.instanceOf<JSONAsync<number>>(subObject.number, JSONAsync);
+    assert.isNumber<number>(subObject.number.get());
+    assert.isEmpty<Record<string, never>>(subObject.empty.get());
+
+    const one = object[0];
+    assert.isString<string>(one.get());
+
+    const boolean = object['1'];
+    assert.isBoolean<boolean>(boolean.get());
+
+    const nothing = object.two;
+    assert.isNull<null>(nothing.get());
+  });
+
+  it('expand()', () => {
+    const document = JSONAsync.parse<typeof structured>(JSONtext);
+
+    const object = document.expand();
+    assert.isObject(object);
+
+    const array = object.array.expand();
     assert.isArray<number[]>(array);
     assert.isNumber<number>(array[1]);
 
-    const subObject = object.object.get();
+    const subObject = object.object.expand();
     assert.isObject(subObject);
     assert.isNumber<number>(subObject.number);
     assert.isEmpty<Record<string, never>>(subObject.empty.get());

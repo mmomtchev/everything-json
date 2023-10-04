@@ -79,6 +79,7 @@ class JSON : public ObjectWrap<JSON>, JSONElementContext {
   static shared_ptr<padded_string> GetString(const CallbackInfo &);
   static inline bool CanRun(const high_resolution_clock::time_point &);
   static inline Napi::Value GetPrimitive(Napi::Env, const element &);
+  Napi::Value Get(Napi::Env, bool);
 
 public:
   JSON(const CallbackInfo &);
@@ -87,6 +88,7 @@ public:
   static Napi::Value Parse(const CallbackInfo &);
   static Napi::Value ParseAsync(const CallbackInfo &);
   Napi::Value Get(const CallbackInfo &);
+  Napi::Value Expand(const CallbackInfo &);
   Napi::Value ToObject(const CallbackInfo &);
   Napi::Value ToObjectAsync(const CallbackInfo &);
 

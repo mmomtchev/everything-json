@@ -4,6 +4,7 @@ Function JSON::GetClass(Napi::Env env) {
   return DefineClass(env, "JSON",
                      {
                          JSON::InstanceMethod<&JSON::Get>("get"),
+                         JSON::InstanceMethod<&JSON::Expand>("expand"),
                          JSON::InstanceMethod<&JSON::ToObject>("toObject"),
                          JSON::InstanceMethod<&JSON::ToObjectAsync>("toObjectAsync"),
                          JSON::StaticMethod<&JSON::Parse>("parse"),

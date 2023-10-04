@@ -1,8 +1,8 @@
 # Changelog
 
-### [1.0.0]
+### [0.9.3]
 
- - `.get()` now returns primitive values as JavaScript values instead of a `JSON` object with a single primitive value
+ - A new method `.expand()` returns primitive values as JavaScript values instead of a `JSON` object with a single primitive value
  - Support automatic carrying over of complex TypeScript types via generics
  - Fix [#7](https://github.com/mmomtchev/everything-json/issues/7), handle exceptions in synchronous mode
 
