@@ -16,25 +16,25 @@ Read it [here](https://github.com/mmomtchev/everything-json/blob/main/doc/Introd
 
 # Usage
 
-`everything-json` is a two-stage JSON parser based on `simdjson`. Its first pass creates a binary representation of the JSON data. This pass is independent of V8 and can be performed asynchronously in a background thread without any effect on the event loop by calling `JSON.parseAsync()` instead of `JSON.parse()`. The resulting object, of `JSON` type, can be recursively decoded using its `.get()` method which returns a single level of indirection or using its `.toObject()` method which returns the full sub-tree as a native JS object - just like the native `JSON.parse()`.
+`everything-json` is a two-stage JSON parser based on `simdjson`. Its first pass creates a binary representation of the JSON data. This pass is independent of V8 and can be performed asynchronously in a background thread without any effect on the event loop by calling `JSON.parseAsync()` instead of `JSON.parse()`. The resulting object, of `JSON` type, can be recursively decoded using its `.get()` method which returns a single level of indirection or by using its `.toObject()` method which returns the full sub-tree as a native JS object - just like the native `JSON.parse()`.
 
 Due to the limitations of the V8 engine, the second stage - `.get()` / `.expand()` / `.toObject()` / `.toObjectAsync()` can only be performed on the main thread.
 
-.`get()` is usually fast enough - unless dealing with a huge array - and it can be used synchronously without incurring (almost) any latency. `.get()` returns:
+`.get()` is usually fast enough - unless dealing with a huge array with millions of elements - and it can be used synchronously without incurring (almost) any latency. `.get()` returns:
 
     string | boolean | number | null | Array<JSON> | Record<string, JSON>
 
-.`expand()` is like `.get()` but automatically expands all primitive values and returns:
+`.expand()` is like `.get()` but automatically expands all primitive values and returns:
 
-    Array(JSON | string | boolean | number | null) |
+    Array<JSON | string | boolean | number | null> |
     Record<string, JSON | string | boolean | number | null> |
     string | boolean | number | null
 
 `.toObject()` works just like the built-in `JSON.parse()`. It can block the event loop for significant amounts of time. It is slower than the built-in parser but it allows to convert only a subtree of the main document - by first drilling down with `.get()` to reach it.
 
-`.toObjectAsync()` also uses the main thread to create the JavaScript object, but it periodically yields the CPU, allowing the event loop to make one full iteration - executing all pending tasks - before continuing again. It is capable of stopping in the middle of an array or an object, but not in the middle of a string - which should not be a problem unless the string is several megabytes. The default period is 5ms and it is configurable by setting `JSON.latency`. `.toObjectAsync()` is similar to `yieldable-json` but it is about 5 times faster.
+`.toObjectAsync()` also uses the main thread to create the JavaScript object, but it periodically yields the CPU, allowing the event loop to make one full iteration - executing all pending tasks - before continuing again. It is capable of stopping in the middle of an array or an object, but not in the middle of a string - which should not be a problem unless the string is in the megabytes range. The default period is 5ms and it is configurable by setting `JSON.latency`. `.toObjectAsync()` is similar to `yieldable-json` but it is about 5 times faster.
 
-If you have the choice, always read the data as a `Buffer` instead of `string` with the `utf-8` argument of `readFile`. It is 3 times faster and it also avoids a second UTF8 decoding pass when parsing the JSON data. `everything-json` supports reading from a `Buffer` if the data is UTF8.
+If you have a choice, always read the data as a `Buffer` instead of `string` using the `utf-8` argument of `readFile`. It is 3 times faster and it also avoids a second UTF8 decoding pass when parsing the JSON data. `everything-json` supports reading from a `Buffer` if the data is UTF8.
 
 ## Sync mode
 
