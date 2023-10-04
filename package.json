@@ -13,7 +13,7 @@
     "preversion": "npm run lint && npm run test && npm run doc",
     "postversion": "git push && git push --tags && node ./scripts/publish-packages.js",
     "postpublish": "gh workflow run test-package.yml -F version=$npm_package_version",
-    "doc": "documentation readme -f md -s 'Full API' lib/index.d.ts",
+    "doc": "documentation build -f md lib/index.d.ts > doc/API.md",
     "gcov": "mkdir -p coverage && cd coverage && gcov -o ../build/Debug/obj.target/everything-json/src ../src/*",
     "lcov": "npx c8 report --reporter=text-lcov > coverage/tests.lcov",
     "codecov": "cd coverage && curl -s https://codecov.io/bash | bash"
