@@ -78,6 +78,7 @@ class JSON : public ObjectWrap<JSON>, JSONElementContext {
   static void ToObjectAsync(shared_ptr<ToObjectAsync::Context>, high_resolution_clock::time_point);
   static shared_ptr<padded_string> GetString(const CallbackInfo &);
   static inline bool CanRun(const high_resolution_clock::time_point &);
+  static inline Napi::Value GetPrimitive(Napi::Env, const element &);
 
 public:
   JSON(const CallbackInfo &);
