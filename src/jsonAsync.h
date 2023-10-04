@@ -62,8 +62,9 @@ struct Context {
   Napi::Reference<Value> self;
   // The root of the constructed JS object
   Napi::Reference<Value> top;
-  // The iterative traversal queue
-  vector<Element> queue;
+  // The iterative traversal stack
+  // (it is a vector because we need to access the last two elements)
+  vector<Element> stack;
   Promise::Deferred deferred;
   Context(Napi::Env, Napi::Value);
 };

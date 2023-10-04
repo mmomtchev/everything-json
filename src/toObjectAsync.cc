@@ -5,7 +5,7 @@ namespace ToObjectAsync {
 
 Element::Element(const element &_item) : item(_item), iterator({{}}) {}
 Context::Context(Napi::Env _env, Napi::Value _self)
-    : env(_env), self(Persistent(_self)), top(), queue(), deferred(env) {}
+    : env(_env), self(Persistent(_self)), top(), stack(), deferred(env) {}
 
 } // namespace ToObjectAsync
 
@@ -47,7 +47,7 @@ Value JSON::ToObjectAsync(const CallbackInfo &info) {
   // The ToObjectAsync state is created here and it exists
   // as long as it sits on the queue
   auto state = make_shared<ToObjectAsync::Context>(env, info.This());
-  state->queue.emplace_back(ToObjectAsync::Element(root));
+  state->stack.emplace_back(ToObjectAsync::Element(root));
   ToObjectAsync(state, high_resolution_clock::now());
 
   return state->deferred.Promise();
@@ -62,15 +62,15 @@ Value JSON::ToObjectAsync(const CallbackInfo &info) {
 // (this is an iterative heterogenous tree traversal)
 void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resolution_clock::time_point start) {
   Napi::Env env = state->env;
-  auto &queue = state->queue;
+  auto &stack = state->stack;
 
   HandleScope scope(env);
   Napi::Value result;
 
   ToObjectAsync::Element *current, *previous;
   try {
-    current = LAST(queue);
-    previous = PENULT(queue);
+    current = LAST(stack);
+    previous = PENULT(stack);
     // Loop invariant at the beginning:
     // * current->item holds the currently evaluated item
     // * previous->item / previous->iterator hold its slot in the parent object/array
@@ -121,7 +121,7 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
           array.Set(previous->idx, result);
 #ifdef DEBUG_VERBOSE
           printf("%.*s [%u] = %s\n",
-            (int)queue.size(), "                       ",
+            (int)stack.size(), "                       ",
             (unsigned)previous->idx, result.ToString().Utf8Value().c_str());
 #endif
           break;
@@ -132,7 +132,7 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
           object.Set(key, result);
 #ifdef DEBUG_VERBOSE
           printf("%.*s {%s} = %s\n",
-            (int)queue.size(), "                       ",
+            (int)stack.size(), "                       ",
             key, result.ToString().Utf8Value().c_str());
 #endif
           break;
@@ -152,9 +152,9 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
         if (current->iterator.array.idx == current->iterator.array.end) {
           goto empty;
         }
-        queue.emplace_back(ToObjectAsync::Element(*current->iterator.array.idx));
-        current = LAST(queue);
-        previous = PENULT(queue);
+        stack.emplace_back(ToObjectAsync::Element(*current->iterator.array.idx));
+        current = LAST(stack);
+        previous = PENULT(stack);
         break;
       case element_type::OBJECT:
         current->iterator.object.idx = dom::object(current->item).begin();
@@ -162,9 +162,9 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
         if (current->iterator.object.idx == current->iterator.object.end) {
           goto empty;
         }
-        queue.emplace_back(ToObjectAsync::Element((*current->iterator.object.idx).value));
-        current = LAST(queue);
-        previous = PENULT(queue);
+        stack.emplace_back(ToObjectAsync::Element((*current->iterator.object.idx).value));
+        current = LAST(stack);
+        previous = PENULT(stack);
         break;
 
       default:
@@ -180,9 +180,9 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
             previous->iterator.array.idx++;
             if (previous->iterator.array.idx == previous->iterator.array.end) {
               backtracked = true;
-              queue.pop_back();
-              current = LAST(queue);
-              previous = PENULT(queue);
+              stack.pop_back();
+              current = LAST(stack);
+              previous = PENULT(stack);
             } else {
               current->item = *previous->iterator.array.idx;
             }
@@ -192,9 +192,9 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
             previous->iterator.object.idx++;
             if (previous->iterator.object.idx == previous->iterator.object.end) {
               backtracked = true;
-              queue.pop_back();
-              current = LAST(queue);
-              previous = PENULT(queue);
+              stack.pop_back();
+              current = LAST(stack);
+              previous = PENULT(stack);
             } else {
               current->item = (*previous->iterator.object.idx).value;
             }
