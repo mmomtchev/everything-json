@@ -1,7 +1,7 @@
 /**
  * A binary representation of a JSON element
  */
-export class JSON {
+export class JSON<T> {
   constructor();
 
   /**
@@ -14,7 +14,7 @@ export class JSON {
    * @param {string} text JSON to parse
    * @returns {JSON}
    */
-  static parse(text: string | Buffer): JSON;
+  static parse<U = any>(text: string | Buffer): JSON<U>;
 
   /**
    * Parse a string and return its binary representation.
@@ -27,14 +27,16 @@ export class JSON {
    * @param {string} text JSON to parse
    * @returns {Promise<JSON>}
    */
-  static parseAsync(text: string | Buffer): Promise<JSON>;
+  static parseAsync<U = any>(text: string | Buffer): Promise<JSON<U>>;
 
   /**
    * Retrieve a subtree out of the binary JSON object
    * 
    * @returns {(JSON | string | boolean | number | null) [] | Record<string, JSON | string | boolean | number | null>}
    */
-  get(): any;
+  get(): T extends Record<string | number, any> ? {
+    [P in keyof T]: T[P] extends Record<string | number, any> ? JSON<T[P]> : T[P];
+  } : T;
 
   /**
    * Converts the binary representation to a JS object.
