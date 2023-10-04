@@ -30,11 +30,21 @@ export class JSON<T = any> {
   static parseAsync<U = any>(text: string | Buffer): Promise<JSON<U>>;
 
   /**
+   * Retrieve a subtree out of the binary JSON object.
+   * 
+   * @returns {string | boolean | number | null | Array<JSON> | Record<string, JSON>}
+   */
+  get(): T extends Record<string | number, any> ? {
+    [P in keyof T]: JSON<T[P]>;
+  } : T;
+
+  /**
    * Retrieve a subtree out of the binary JSON object
+   * automatically expanding primitive values.
    * 
    * @returns {(JSON | string | boolean | number | null) [] | Record<string, JSON | string | boolean | number | null>}
    */
-  get(): T extends Record<string | number, any> ? {
+  expand(): T extends Record<string | number, any> ? {
     [P in keyof T]: T[P] extends Record<string | number, any> ? JSON<T[P]> : T[P];
   } : T;
 
@@ -55,6 +65,7 @@ export class JSON<T = any> {
    * 
    * Uses the main thread, but periodically yields the CPU
    * to allow other tasks to run.
+   * 
    * Allows to convert only a small subtree out of a larger
    * document.
    * 
@@ -73,14 +84,14 @@ export class JSON<T = any> {
   static latency: number;
 
   /**
-   * The currently used simdjson version
+   * The currently used simdjson version.
    * 
    * @property {string}
    */
   static readonly simdjson_version: string;
 
   /**
-   * The currently used SIMD implementation
+   * The currently used SIMD implementation.
    * 
    * @property {string}
    */

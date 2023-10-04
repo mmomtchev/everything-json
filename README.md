@@ -94,7 +94,7 @@ type S = {
 };
 
 const document = JSONAsync.parse<S>(json).get();
-// document will have its type correctly deduced as JSON<{ number: number, array: JSON<number[]> }>
+// document will have its type correctly deduced as JSON<{ number: JSON<number>, array: JSON<number[]> }>
 ```
 
 # Current status

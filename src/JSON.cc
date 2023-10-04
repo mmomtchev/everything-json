@@ -109,8 +109,7 @@ Value JSON::GetPrimitive(Napi::Env env, const element &el) {
   throw Error::New(env, "Invalid JSON element");
 }
 
-Value JSON::Get(const CallbackInfo &info) {
-  Napi::Env env(info.Env());
+Value JSON::Get(Napi::Env env, bool expand) {
   auto instance = env.GetInstanceData<InstanceData>();
   Napi::Value sub;
 
@@ -125,7 +124,7 @@ Value JSON::Get(const CallbackInfo &info) {
 
       size_t i = 0;
       for (element child : dom::array(root)) {
-        if (child.is_array() || child.is_object()) {
+        if (!expand || (child.is_array() || child.is_object())) {
           context.root = child;
           sub = instance->JSON_ctor.Value().New(1, &ctor_args);
         } else
@@ -143,7 +142,7 @@ Value JSON::Get(const CallbackInfo &info) {
 
       for (auto field : dom::object(root)) {
         const auto &child = field.value;
-        if (child.is_array() || child.is_object()) {
+        if (!expand || (child.is_array() || child.is_object())) {
           context.root = child;
           sub = instance->JSON_ctor.Value().New(1, &ctor_args);
         } else
@@ -162,6 +161,8 @@ Value JSON::Get(const CallbackInfo &info) {
   throw Error::New(env, "Invalid JSON element");
 }
 
+Value JSON::Get(const CallbackInfo &info) { return Get(info.Env(), false); }
+Value JSON::Expand(const CallbackInfo &info) { return Get(info.Env(), true); }
 Value JSON::ToObject(const CallbackInfo &info) { return ToObject(info.Env(), root); }
 
 Value JSON::ToObject(Napi::Env env, const element &root) {
