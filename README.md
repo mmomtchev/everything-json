@@ -8,7 +8,7 @@
 [![npm](https://img.shields.io/npm/v/everything-json)](https://www.npmjs.com/package/everything-json)
 [![Test npm package](https://github.com/mmomtchev/everything-json/actions/workflows/test-package.yml/badge.svg)](https://github.com/mmomtchev/everything-json/actions/workflows/test-package.yml)
 
-![Everything Bagel](https://raw.githubusercontent.com/mmomtchev/everything-json/main/everything-bagel.png)
+![Everything Bagel](https://raw.githubusercontent.com/mmomtchev/everything-json/main/doc/everything-bagel.png)
 
 # The `everything-json` manifesto
 
@@ -130,6 +130,9 @@ Four tests:
 * Synchronous parsing then convert to JS object
 * Asynchronous parsing then retrieve 1 element with the fastest API
 * Asynchronous parsing then convert to JS object
+
+![twitter.json](https://raw.githubusercontent.com/mmomtchev/everything-json/main/doc/bench-twitter.png)
+![canada.json](https://raw.githubusercontent.com/mmomtchev/everything-json/main/doc/bench-canada.png)
 
 ## `twitter.json` : deep JSON
 
