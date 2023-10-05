@@ -1,28 +1,20 @@
-const fs = require('fs');
-const path = require('path');
 const b = require('benny');
-const { assert } = require('chai');
 
 const yieldable = require('yieldable-json');
 const JSONAsync = require('..').JSON;
 
-const testDataPath = path.resolve(__dirname, '..', 'test', 'data');
-const testJSON = fs.readFileSync(path.join(testDataPath, 'canada.json'), 'utf-8');
-
-module.exports = b.suite(
+module.exports = (test, get, utf8, buf) => b.suite(
   'Asynchronous JSON parsing, converting the data to a native JS object',
 
   b.add('built-in JSON.parse (synchronous parsing)', async () => {
-    const document = JSON.parse(testJSON);
-    const data = document.features[0].geometry.coordinates[0][0];
-    assert.isArray(data);
-    assert.closeTo(data[0], -65.614, 1e-3);
-    assert.closeTo(data[1], 43.42, 1e-3);
+    const document = JSON.parse(utf8);
+    const data = get.object(document);
+    test(data);
   }),
   b.add('yieldable-json (yieldable parsing on the main thread)', async () => {
     const document = await new Promise((resolve, reject) => {
       try {
-        yieldable.parseAsync(testJSON, (err, result) => {
+        yieldable.parseAsync(utf8, (err, result) => {
           if (err) reject (err);
           resolve(result);
         });
@@ -30,17 +22,18 @@ module.exports = b.suite(
         reject(err);
       }
     });
-    const data = document.features[0].geometry.coordinates[0][0];
-    assert.isArray(data);
-    assert.closeTo(data[0], -65.614, 1e-3);
-    assert.closeTo(data[1], 43.42, 1e-3);
+    const data = get.object(document);
+    test(data);
   }),
-  b.add('everything-json (background parsing with yieldable object construction)', async () => {
-    const document = await (await JSONAsync.parseAsync(testJSON)).toObjectAsync();
-    const data = document.features[0].geometry.coordinates[0][0];
-    assert.isArray(data);
-    assert.closeTo(data[0], -65.614, 1e-3);
-    assert.closeTo(data[1], 43.42, 1e-3);
+  b.add('everything-json (background parsing with yieldable object construction) / UTF8', async () => {
+    const document = await (await JSONAsync.parseAsync(utf8)).toObjectAsync();
+    const data = get.object(document);
+    test(data);
+  }),
+  b.add('everything-json (background parsing with yieldable object construction) / Buffer', async () => {
+    const document = await (await JSONAsync.parseAsync(buf)).toObjectAsync();
+    const data = get.object(document);
+    test(data);
   }),
 
   b.cycle(),

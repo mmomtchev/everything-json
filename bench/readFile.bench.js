@@ -5,7 +5,7 @@ const { assert } = require('chai');
 
 const testDataPath = path.resolve(__dirname, '..', 'test', 'data', 'canada.json');
 
-module.exports = b.suite(
+module.exports = () => b.suite(
   'Reading a file',
 
   b.add('readFile (UTF8)', async () => {

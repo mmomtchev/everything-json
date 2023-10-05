@@ -1,43 +1,36 @@
-const fs = require('fs');
-const path = require('path');
 const b = require('benny');
-const { assert } = require('chai');
 
 const simdjson = require('simdjson');
 const JSONAsync = require('..').JSON;
 const yieldable = require('yieldable-json');
 
-const testDataPath = path.resolve(__dirname, '..', 'test', 'data');
-const testJSON = fs.readFileSync(path.join(testDataPath, 'canada.json'), 'utf-8');
-
-module.exports = b.suite(
+module.exports = (test, get, utf8, buf) => b.suite(
   'Asynchronous JSON parsing, accessing 1 element through each API\'s fastest interface',
 
   b.add('built-in JSON.parse (synchronous parsing)', async () => {
-    const document = JSON.parse(testJSON);
-    const data = document.features[0].geometry.coordinates[0][0];
-    assert.isArray(data);
-    assert.closeTo(data[0], -65.614, 1e-3);
-    assert.closeTo(data[1], 43.42, 1e-3);
+    const document = JSON.parse(utf8);
+    const data = get.object(document);
+    test(data);
   }),
-  b.add('everything-json (100% background processing with zero latency)', async () => {
-    const document = await JSONAsync.parseAsync(testJSON);
-    const data = document.get().features.get()[0].get().geometry.get().coordinates.get()[0].get()[0].toObject();
-    assert.isArray(data);
-    assert.closeTo(data[0], -65.614, 1e-3);
-    assert.closeTo(data[1], 43.42, 1e-3);
+  b.add('everything-json (100% background processing with zero latency) from UTF8 string', async () => {
+    const document = await JSONAsync.parseAsync(utf8);
+    const data = get.everything(document);
+    test(data);
+  }),
+  b.add('everything-json (100% background processing with zero latency) from Buffer', async () => {
+    const document = await JSONAsync.parseAsync(buf);
+    const data = get.everything(document);
+    test(data);
   }),
   b.add('simdjson (synchronous parsing)', () => {
-    const document = simdjson.lazyParse(testJSON);
-    const data = document.valueForKeyPath('features[0].geometry.coordinates[0][0]');
-    assert.isArray(data);
-    assert.closeTo(data[0], -65.614, 1e-3);
-    assert.closeTo(data[1], 43.42, 1e-3);
+    const document = simdjson.lazyParse(utf8);
+    const data = get.simdjson(document);
+    test(data);
   }),
   b.add('yieldable-json (asynchronous parsing on the main thread by yielding)', async () => {
     const document = await new Promise((resolve, reject) => {
       try {
-        yieldable.parseAsync(testJSON, (err, result) => {
+        yieldable.parseAsync(utf8, (err, result) => {
           if (err) reject(err);
           resolve(result);
         });
@@ -45,10 +38,8 @@ module.exports = b.suite(
         reject(err);
       }
     });
-    const data = document.features[0].geometry.coordinates[0][0];
-    assert.isArray(data);
-    assert.closeTo(data[0], -65.614, 1e-3);
-    assert.closeTo(data[1], 43.42, 1e-3);
+    const data = get.object(document);
+    test(data);
   }),
 
 

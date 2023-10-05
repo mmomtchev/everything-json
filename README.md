@@ -32,7 +32,7 @@ Due to the limitations of the V8 engine, the second stage - `.get()` / `.expand(
 
 `.toObject()` works just like the built-in `JSON.parse()`. It can block the event loop for significant amounts of time. It is slower than the built-in parser but it allows to convert only a subtree of the main document - by first drilling down with `.get()` to reach it.
 
-`.toObjectAsync()` also uses the main thread to create the JavaScript object, but it periodically yields the CPU, allowing the event loop to make one full iteration - executing all pending tasks - before continuing again. It is capable of stopping in the middle of an array or an object, but not in the middle of a string - which should not be a problem unless the string is in the megabytes range. The default period is 5ms and it is configurable by setting `JSON.latency`. `.toObjectAsync()` is similar to `yieldable-json` but it is about 5 times faster.
+`.toObjectAsync()` also uses the main thread to create the JavaScript object, but it periodically yields the CPU, allowing the event loop to make one full iteration - executing all pending tasks - before continuing again. It is capable of stopping in the middle of an array or an object, but not in the middle of a string - which should not be a problem unless the string is in the megabytes range. The default period is 5ms and it is configurable by setting `JSON.latency`. `.toObjectAsync()` is similar to `yieldable-json` but it is about 5 to 20 times faster.
 
 If you have a choice, always read the data as a `Buffer` instead of `string` using the `utf-8` argument of `readFile`. It is 3 times faster and it also avoids a second UTF8 decoding pass when parsing the JSON data. `everything-json` supports reading from a `Buffer` if the data is UTF8.
 
@@ -120,6 +120,34 @@ Read it [here](https://github.com/mmomtchev/everything-json/blob/main/doc/API.md
 # Security
 
 As with every other software that parses untrusted and unsanitized user input, there is a risk of vulnerability. However as JSON is a very simple format and `simdjson` is an extensively tested and very widely used library, security vulnerabilities are rather unlikely.
+
+# Benchmarks
+
+Some benchmarks on a Haswell CPU *(Number of parsing operations per second.)*
+
+Four tests:
+* Synchronous parsing then retrieve 1 element with the fastest API
+* Synchronous parsing then convert to JS object
+* Asynchronous parsing then retrieve 1 element with the fastest API
+* Asynchronous parsing then convert to JS object
+
+## `twitter.json` : deep JSON
+
+| / | Builtin `JSON.parse()` | `everything-json` from `Buffer` | `everything-json` from UTF8 string | `simdjson` | `yieldable-json` |
+| --- | --- | --- | --- | --- | --- |
+| sync then 1 element | 583 | 1399 | 562 | 568 | n/a |
+| sync then JS object | 583 | 146 | 125 | 145 | n/a |
+| async then 1 element | n/a | 1133 | 523 | n/a | 66 |
+| async then JS object | n/a | 142 | 122 | n/a | 66 |
+
+## `canada.json` : GeoJSON (lots of floating-point numbers)
+
+| / | Builtin `JSON.parse()` | `everything-json` from `Buffer` | `everything-json` from UTF8 string | `simdjson` | `yieldable-json` |
+| --- | --- | --- | --- | --- | --- |
+| sync then 1 element | 68 | 276 | 247 | 241 | n/a |
+| sync then JS object | 69 | 26 | 26 | 33 | n/a |
+| async then 1 element | n/a | 242 | 227 | n/a | 5 |
+| async then JS object | n/a | 25 | 25 | 33 | 5 |
 
 # Copyright
 
