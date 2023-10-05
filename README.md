@@ -32,7 +32,7 @@ Due to the limitations of the V8 engine, the second stage - `.get()` / `.expand(
 
 `.toObject()` works just like the built-in `JSON.parse()`. It can block the event loop for significant amounts of time. It is slower than the built-in parser but it allows to convert only a subtree of the main document - by first drilling down with `.get()` to reach it.
 
-`.toObjectAsync()` also uses the main thread to create the JavaScript object, but it periodically yields the CPU, allowing the event loop to make one full iteration - executing all pending tasks - before continuing again. It is capable of stopping in the middle of an array or an object, but not in the middle of a string - which should not be a problem unless the string is in the megabytes range. The default period is 5ms and it is configurable by setting `JSON.latency`. `.toObjectAsync()` is similar to `yieldable-json` but it is about 5 to 20 times faster.
+`.toObjectAsync()` also uses the main thread to create the JavaScript object, but it periodically yields the CPU, allowing the event loop to make one full iteration - executing all pending tasks - before continuing again. It is capable of stopping in the middle of an array or an object, but not in the middle of a string - which should not be a problem unless the string is in the megabytes range. The default period is 5ms and it is configurable by setting `JSON.latency`. `.toObjectAsync()` is similar to `yieldable-json` but it much faster - up to 20 times in some cases, see below.
 
 If you have a choice, always read the data as a `Buffer` instead of `string` using the `utf-8` argument of `readFile`. It is 3 times faster and it also avoids a second UTF8 decoding pass when parsing the JSON data. `everything-json` supports reading from a `Buffer` if the data is UTF8.
 
@@ -147,7 +147,7 @@ Four tests:
 | sync then 1 element | 68 | 276 | 247 | 241 | n/a |
 | sync then JS object | 69 | 26 | 26 | 33 | n/a |
 | async then 1 element | n/a | 242 | 227 | n/a | 5 |
-| async then JS object | n/a | 25 | 25 | 33 | 5 |
+| async then JS object | n/a | 25 | 25 | n/a | 5 |
 
 # Copyright
 
