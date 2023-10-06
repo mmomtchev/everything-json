@@ -47,7 +47,7 @@ Value JSON::ToObjectAsync(const CallbackInfo &info) {
   // The ToObjectAsync state is created here and it exists
   // as long as it sits on the queue
   auto state = make_shared<ToObjectAsync::Context>(env, info.This());
-  state->stack.emplace_back(ToObjectAsync::Element(root));
+  state->stack.emplace_back(root);
   ToObjectAsync(state, high_resolution_clock::now());
 
   return state->deferred.Promise();
@@ -152,7 +152,7 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
         if (current->iterator.array.idx == current->iterator.array.end) {
           goto empty;
         }
-        stack.emplace_back(ToObjectAsync::Element(*current->iterator.array.idx));
+        stack.emplace_back(*current->iterator.array.idx);
         current = LAST(stack);
         previous = PENULT(stack);
         break;
@@ -162,7 +162,7 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
         if (current->iterator.object.idx == current->iterator.object.end) {
           goto empty;
         }
-        stack.emplace_back(ToObjectAsync::Element((*current->iterator.object.idx).value));
+        stack.emplace_back((*current->iterator.object.idx).value);
         current = LAST(stack);
         previous = PENULT(stack);
         break;
