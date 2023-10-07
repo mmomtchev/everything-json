@@ -1,5 +1,5 @@
-export type AddToObject<T> = T extends Record<string | number, any> ? {
-  [P in keyof T]: AddToObject<T[P]>;
+export type JSONProxy<T> = T extends Record<string | number, any> ? {
+  [P in keyof T]: JSONProxy<T[P]>;
 } & {
   toObject: () => T;
 } : T;
@@ -88,7 +88,7 @@ export class JSON<T = any> {
    * 
    * @returns {any}
    */
-  proxify() : AddToObject<T>
+  proxify() : JSONProxy<T>
 
   /**
    * Allows to change the default latency limit.
