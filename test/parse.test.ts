@@ -17,15 +17,15 @@ describe('from string', () => {
     assert.isArray(features);
     assert.instanceOf(features[0], JSONAsync);
 
-    assert.closeTo((features[0].get()['geometry'] as JSONAsync<Polygon>)
-      .get()['coordinates'].get()[10].get()[2].get()[0].get(), -55.946, 1e-3);
-    assert.closeTo((features[0].get()['geometry'] as JSONAsync<Polygon>)
-      .get()['coordinates'].get()[10].get()[2].expand()[0], -55.946, 1e-3);
+    assert.closeTo((features[0].get().geometry as JSONAsync<Polygon>)
+      .get().coordinates.get()[10].get()[2].get()[0].get(), -55.946, 1e-3);
+    assert.closeTo((features[0].get().geometry as JSONAsync<Polygon>)
+      .get().coordinates.get()[10].get()[2].expand()[0], -55.946, 1e-3);
   });
 
   it('toObject()', () => {
     const document = JSONAsync.parse<FeatureCollection>(text);
-    const geometry = document.get().features.get()[0].get()['geometry'].toObject();
+    const geometry = document.get().features.get()[0].get().geometry.toObject();
     assert.deepEqual(geometry, expected.features[0].geometry);
   });
 
@@ -77,13 +77,13 @@ describe('from Buffer', () => {
   const expected = JSON.parse(buffer.toString());
 
   it('parse()', () => {
-    const document = JSONAsync.parse(buffer);
-    const geometry = document.get().features.get()[0].get()['geometry'].toObject();
+    const document = JSONAsync.parse<FeatureCollection>(buffer);
+    const geometry = document.get().features.get()[0].get().geometry.toObject() as Polygon;
     assert.deepEqual(geometry.coordinates[0], expected.features[0].geometry.coordinates[0]);
   });
 
   it('parseAsync()', (done) => {
-    JSONAsync.parseAsync(buffer)
+    JSONAsync.parseAsync<FeatureCollection>(buffer)
       .then((document) => {
         assert.isObject(document.get());
         assert.sameMembers(Object.keys(document.get()), ['type', 'features']);

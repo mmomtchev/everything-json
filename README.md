@@ -34,6 +34,8 @@ Due to the limitations of the V8 engine, the second stage - `.get()` / `.expand(
 
 `.toObjectAsync()` also uses the main thread to create the JavaScript object, but it periodically yields the CPU, allowing the event loop to make one full iteration - executing all pending tasks - before continuing again. It is capable of stopping in the middle of an array or an object, but not in the middle of a string - which should not be a problem unless the string is in the megabytes range. The default period is 5ms and it is configurable by setting `JSON.latency`. `.toObjectAsync()` is similar to `yieldable-json` but it much faster - up to 20 times in some cases, see below.
 
+`.proxify()` allows to create JavaScript `Proxy` that will create the illusion of working with a real object, intercepting requests to retrieve a property and calling `.expand()` behind the scenes.
+
 If you have a choice, always read the data as a `Buffer` instead of `string` using the `utf-8` argument of `readFile`. It is 3 times faster and it also avoids a second UTF8 decoding pass when parsing the JSON data. `everything-json` supports reading from a `Buffer` if the data is UTF8.
 
 ## Sync mode
@@ -42,7 +44,7 @@ These two examples convert a subtree of the main document to a JS object.
 
 ```ts
 import { JSON } from 'everything-json';
-const fs = require('fs');
+import * as fs from 'fs';
 
 const document = JSON.parse(fs.readFileSync('test/data/canada.json'));
 // With the built-in JSON parser, this would have been equivalent to
@@ -55,13 +57,23 @@ console.log(document.get().features.get()[0].get().geometry.get()
 
 ```ts
 import { JSON } from 'everything-json';
-const fs = require('fs');
+import * as fs from 'fs';
 
 const document = await JSON.parseAsync(
   await fs.promises.readFile('test/data/canada.json'));
 
 console.log(await document.get().features.get()[0].get().geometry.get()
   .coordinates.get()[10].toObjectAsync());
+```
+
+## With `proxify`
+
+```ts
+import { JSON } from 'everything-json';
+import * as fs from 'fs';
+
+const document = JSON.parse(fs.readFileSync('test/data/canada.json'));
+console.log(document.features.[0].geometry.coordinates[10][2][0]);
 ```
 
 ## With `Next.js`

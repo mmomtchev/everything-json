@@ -74,6 +74,17 @@ export class JSON<T = any> {
   toObjectAsync(): Promise<T>;
 
   /**
+   * Creates a Proxy object that gives the illusion of a real object.
+   * 
+   * This is an instantaneous zero-latency method for creating a
+   * `Proxy` object that works (almost) like a real object but
+   * calls .expand() when needs to retrieve a property.
+   * 
+   * @returns {any}
+   */
+  proxify(): T;
+
+  /**
    * Allows to change the default latency limit.
    * 
    * CPU will be yielded every `latency` milliseconds.
