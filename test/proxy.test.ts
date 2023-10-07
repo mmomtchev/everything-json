@@ -3,7 +3,7 @@ import * as path from 'path';
 import { assert } from 'chai';
 import type { FeatureCollection, Polygon } from 'geojson';
 
-import { JSON as JSONAsync } from 'everything-json';
+import { JSON as JSONAsync, AddToObject } from 'everything-json';
 
 describe('proxify()', () => {
   const text = fs.readFileSync(path.resolve(__dirname, 'data', 'canada.json'), 'utf8');
@@ -17,6 +17,8 @@ describe('proxify()', () => {
     assert.isArray(features);
     assert.closeTo((features[0].geometry as Polygon).coordinates[10][2][0], -55.946, 1e-3);
     assert.closeTo((features[0].geometry as Polygon).coordinates[10][2][0], -55.946, 1e-3);
+    assert.deepEqual((features[0].geometry as AddToObject<Polygon>).coordinates[10].toObject(),
+      (expected.features[0].geometry as Polygon).coordinates[10]);
   });
 
   it('parseAsync()', (done) => {

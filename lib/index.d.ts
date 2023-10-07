@@ -1,3 +1,9 @@
+export type AddToObject<T> = T extends Record<string | number, any> ? {
+  [P in keyof T]: AddToObject<T[P]>;
+} & {
+  toObject: () => T;
+} : T;
+
 /**
  * A binary representation of a JSON element
  */
@@ -82,7 +88,7 @@ export class JSON<T = any> {
    * 
    * @returns {any}
    */
-  proxify(): T;
+  proxify() : AddToObject<T>
 
   /**
    * Allows to change the default latency limit.
