@@ -30,6 +30,7 @@ describe('proxify()', () => {
         const features = document.features;
         assert.isArray(features);
         assert.deepEqual(features, expected.features);
+        assert.deepEqual(features.toObject(), expected.features);
         done();
       })
       .catch(done);
