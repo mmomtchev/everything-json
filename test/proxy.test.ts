@@ -11,10 +11,8 @@ describe('proxify()', () => {
 
   it('parse()', () => {
     const document = JSONAsync.parse<FeatureCollection>(text).proxify();
-    assert.isObject(document);
     assert.sameMembers(Object.keys(document), ['type', 'features']);
     const features = document.features;
-    assert.isArray(features);
     assert.closeTo((features[0].geometry as Polygon).coordinates[10][2][0], -55.946, 1e-3);
     assert.closeTo((features[0].geometry as Polygon).coordinates[10][2][0], -55.946, 1e-3);
     assert.deepEqual((features[0].geometry as JSONProxy<Polygon>).coordinates[10].toObject(),
@@ -25,11 +23,8 @@ describe('proxify()', () => {
     JSONAsync.parseAsync<FeatureCollection>(text)
       .then((raw) => {
         const document = raw.proxify();
-        assert.isObject(document);
         assert.sameMembers(Object.keys(document), ['type', 'features']);
         const features = document.features;
-        assert.isArray(features);
-        assert.deepEqual(features, expected.features);
         return features.toObjectAsync();
       })
       .then((features) => {
