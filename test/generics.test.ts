@@ -68,6 +68,40 @@ describe('TypeScript generics', () => {
     assert.isNull<null>(nothing);
   });
 
+  it('path()', () => {
+    const document = JSONAsync.parse<typeof structured>(JSONtext);
+
+    assert.isNumber<number>(document.path('/number').toObject());
+    assert.isArray<number[]>(document.path('/array').toObject());
+    assert.isNumber<number>(document.path('/array/1').toObject());
+    assert.isNumber<number>(document.path('/array').path('/1').toObject());
+    assert.isObject<typeof structured['object']>(document.path('/object').toObject());
+    assert.isNumber<number>(document.path('/object/number').toObject());
+    assert.isNumber<number>(document.path('/object').path('/number').toObject());
+    assert.isObject<Record<string, never>>(document.path('/object/empty').toObject());
+    assert.isObject<Record<string, never>>(document.path('/object').path('/empty').toObject());
+    assert.isString<string>(document.path('/0').toObject());
+    assert.isBoolean<boolean>(document.path('/1').toObject());
+    assert.isNull<null>(document.path('/two').toObject());
+  });
+
+  it('type()', () => {
+    const document = JSONAsync.parse<typeof structured>(JSONtext);
+
+    assert.strictEqual<'number'>(document.path('/number').type, 'number');
+    assert.strictEqual<'array'>(document.path('/array').type, 'array');
+    assert.strictEqual<'number'>(document.path('/array/1').type, 'number');
+    assert.strictEqual<'number'>(document.path('/array').path('/1').type, 'number');
+    assert.strictEqual<'object'>(document.path('/object').type, 'object');
+    assert.strictEqual<'number'>(document.path('/object/number').type, 'number');
+    assert.strictEqual<'number'>(document.path('/object').path('/number').type, 'number');
+    assert.strictEqual<'object'>(document.path('/object/empty').type, 'object');
+    assert.strictEqual<'object'>(document.path('/object').path('/empty').type, 'object');
+    assert.strictEqual<'string'>(document.path('/0').type, 'string');
+    assert.strictEqual<'boolean'>(document.path('/1').type, 'boolean');
+    assert.strictEqual<'null'>(document.path('/two').type, 'null');
+  });
+
   it('toObject()', () => {
     const document = JSONAsync.parse<typeof structured>(JSONtext).toObject();
 

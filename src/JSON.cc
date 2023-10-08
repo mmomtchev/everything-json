@@ -27,7 +27,7 @@ shared_ptr<padded_string> JSON::GetString(const CallbackInfo &info) {
   Napi::Env env(info.Env());
 
   if (info.Length() != 1 || (!info[0].IsString() && !info[0].IsBuffer())) {
-    throw TypeError::New(env, "JSON.Parse expects a single string or Buffer argument");
+    throw TypeError::New(env, "JSON.parse{Async} expects a single string or Buffer argument");
   }
 
   auto parser_ = make_shared<parser>();
@@ -210,4 +210,59 @@ Value JSON::ToObject(Napi::Env env, const element &root) {
     throw Error::New(env, "Invalid JSON element");
   }
   return scope.Escape(result);
+}
+
+Value JSON::Path(const CallbackInfo &info) {
+  Napi::Env env(info.Env());
+  auto instance = env.GetInstanceData<InstanceData>();
+
+  if (info.Length() != 1 || !info[0].IsString()) {
+    throw TypeError::New(env, "JSON.path expects a single string");
+  }
+
+  try {
+    auto path = info[0].ToString().Utf8Value();
+    dom::element element = root.at_pointer(path);
+
+    JSONElementContext context(input_text, parser_, document, element);
+    napi_value ctor_args = External<JSONElementContext>::New(env, &context);
+    auto r = instance->JSON_ctor.Value().New(1, &ctor_args);
+    return r;
+  } catch (const exception &err) {
+    throw Error::New(env, err.what());
+  }
+}
+
+Value JSON::TypeGetter(const CallbackInfo &info) {
+  Napi::Env env(info.Env());
+  auto instance = env.GetInstanceData<InstanceData>();
+
+  try {
+    // This would have greatly benefited from String references in NAPI
+    // Alas, I am currently blocked from discussions in Node.js as
+    // part of an extortion/intimidation for an affair involving corruption
+    // in the French police and judicial system in which the Node.js core
+    // team is involved
+    // (I was blocked for https://github.com/nodejs/node-gyp/issues/2903)
+    switch (root.type()) {
+    case element_type::ARRAY:
+      return String::New(env, "array");
+    case element_type::OBJECT:
+      return String::New(env, "object");
+    case element_type::STRING:
+      return String::New(env, "string");
+    case element_type::DOUBLE:
+    case element_type::INT64:
+    case element_type::UINT64:
+      return String::New(env, "number");
+    case element_type::BOOL:
+      return String::New(env, "boolean");
+    case element_type::NULL_VALUE:
+      return String::New(env, "null");
+    default:
+      throw Error::New(env, "Invalid JSON element");
+    }
+  } catch (const exception &err) {
+    throw Error::New(env, err.what());
+  }
 }

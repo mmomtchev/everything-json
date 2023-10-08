@@ -1,8 +1,38 @@
+export type JSONType<T> = T extends Array<any> ? 'array' :
+  T extends Record<string, any> ? 'object' :
+  T extends string ? 'string' :
+  T extends number ? 'number' :
+  T extends boolean ? 'boolean' :
+  T extends null ? 'null' :
+  'array' | 'object' | 'string' | 'number' | 'boolean' | 'null';
+
+export type JSONProxy<T> = T extends Record<string | number, any> ? {
+  [P in keyof T]: JSONProxy<T[P]>;
+} & {
+  [JSON.symbolToObject]: () => T;
+  [JSON.symbolToObjectAsync]: () => Promise<T>;
+  [JSON.symbolType]: JSONType<T>;
+} : T;
+
+export type RFC6901<T extends Record<string | number, any>, PATH extends string> =
+  PATH extends `/${infer PROP}/${infer SUB}` ?
+  RFC6901<T[PROP], `/${SUB}`> :
+  PATH extends `/${infer PROP}` ?
+  JSON<T[PROP]> :
+  never;
+
 /**
  * A binary representation of a JSON element
  */
 export class JSON<T = any> {
   constructor();
+
+  /**
+   * The underlying type of the JSON element
+   * 
+   * @type {'object' | 'array' | 'string' | 'number' | 'boolean' | 'null'}
+   */
+  type: JSONType<T>;
 
   /**
    * Parse a string and return its binary representation.
@@ -49,6 +79,17 @@ export class JSON<T = any> {
   } : T;
 
   /**
+   * Retrieves a deeply nested JSON element referenced by the RFC6901 JSON pointer.
+   * 
+   * This is much faster than recursing down with .get()/.expand() but
+   * it will still have an O(n) complexity relative to the arrays and objects
+   * sizes since simdjson stores arrays and objects as lists.
+   * 
+   * @returns {any}
+   */
+  path<PATH extends string>(rfc6901: PATH): T extends Record<string | number, any> ? RFC6901<T, PATH> : never;
+
+  /**
    * Converts the binary representation to a JS object.
    * 
    * Will block the event loop while the conversion is running.
@@ -74,6 +115,17 @@ export class JSON<T = any> {
   toObjectAsync(): Promise<T>;
 
   /**
+   * Creates a Proxy object that gives the illusion of a real object.
+   * 
+   * This is an instantaneous zero-latency method for creating a
+   * `Proxy` object that works (almost) like a real object but
+   * calls .expand() when needs to retrieve a property.
+   * 
+   * @returns {any}
+   */
+  proxify(): JSONProxy<T>;
+
+  /**
    * Allows to change the default latency limit.
    * 
    * CPU will be yielded every `latency` milliseconds.
@@ -96,4 +148,19 @@ export class JSON<T = any> {
    * @property {string}
    */
   static readonly simd: 'icelake' | 'haswell' | 'westmere' | 'arm64' | 'ppc64' | 'fallback';
+
+  /**
+   * Symbol.toObject to be used for Proxies
+   */
+  static readonly symbolToObject: unique symbol;
+
+  /**
+   * Symbol.toObjectAsync to be used for Proxies
+   */
+  static readonly symbolToObjectAsync: unique symbol;
+
+  /**
+   * Symbol.type to be used for Proxies
+   */
+  static readonly symbolType: unique symbol;
 }

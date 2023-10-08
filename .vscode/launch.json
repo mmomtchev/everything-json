@@ -10,7 +10,7 @@
       "request": "launch",
       "program": "/usr/bin/node",
       "args": [
-        "node_modules/mocha/lib/cli/cli.js",
+        "${workspaceFolder}/node_modules/mocha/lib/cli/cli.js",
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
@@ -29,6 +29,15 @@
               "ignoreFailures": true
           }
       ]
+    },
+    {
+      "name": "(js) test",
+      "program": "${workspaceFolder}/node_modules/mocha/lib/cli/cli.js",
+      "request": "launch",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "node"
     },
     {
       "name": "(gdb) run.js",
