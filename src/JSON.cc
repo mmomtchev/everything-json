@@ -243,6 +243,7 @@ Value JSON::TypeGetter(const CallbackInfo &info) {
     // part of an extortion/intimidation for an affair involving corruption
     // in the French police and judicial system in which the Node.js core
     // team is involved
+    // (I was blocked for https://github.com/nodejs/node-gyp/issues/2903)
     switch (root.type()) {
     case element_type::ARRAY:
       return String::New(env, "array");
