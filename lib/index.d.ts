@@ -6,8 +6,6 @@ export type JSONProxy<T> = T extends Record<string | number, any> ? {
 } : T;
 
 export type RFC6901<T extends Record<string | number, any>, PATH extends string> =
-  PATH extends '/' ?
-  JSON<T> :
   PATH extends `/${infer PROP}/${infer SUB}` ?
   RFC6901<T[PROP], `/${SUB}`> :
   PATH extends `/${infer PROP}` ?

@@ -71,7 +71,6 @@ describe('TypeScript generics', () => {
   it('path()', () => {
     const document = JSONAsync.parse<typeof structured>(JSONtext);
 
-    assert.isObject<typeof structured>(document.path('/').toObject());
     assert.isNumber<number>(document.path('/number').toObject());
     assert.isArray<number[]>(document.path('/array').toObject());
     assert.isNumber<number>(document.path('/array/1').toObject());
