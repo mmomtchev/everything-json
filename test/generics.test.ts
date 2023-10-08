@@ -68,6 +68,21 @@ describe('TypeScript generics', () => {
     assert.isNull<null>(nothing);
   });
 
+  it('path()', () => {
+    const document = JSONAsync.parse<typeof structured>(JSONtext);
+
+    assert.isObject<typeof structured>(document.path('/').toObject());
+    assert.isNumber<number>(document.path('/number').toObject());
+    assert.isArray<number[]>(document.path('/array').toObject());
+    assert.isNumber<number>(document.path('/array/1').toObject());
+    assert.isObject<typeof structured['object']>(document.path('/object').toObject());
+    assert.isObject<number>(document.path('/object/number').toObject());
+    assert.isObject<Record<string, never>>(document.path('/object/empty').toObject());
+    assert.isString<string>(document.path('/0').toObject());
+    assert.isBoolean<boolean>(document.path('/1').toObject());
+    assert.isNull<null>(document.path('/two').toObject());
+  });
+
   it('toObject()', () => {
     const document = JSONAsync.parse<typeof structured>(JSONtext).toObject();
 

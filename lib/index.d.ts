@@ -5,6 +5,15 @@ export type JSONProxy<T> = T extends Record<string | number, any> ? {
   toObjectAsync: () => Promise<T>;
 } : T;
 
+export type RFC6901<T extends Record<string | number, any>, PATH extends string> =
+  PATH extends '/' ?
+  JSON<T> :
+  PATH extends `/${infer PROP}/${infer SUB}` ?
+  RFC6901<T[PROP], `/${SUB}`> :
+  PATH extends `/${infer PROP}` ?
+  JSON<T[PROP]> :
+  never;
+
 /**
  * A binary representation of a JSON element
  */
@@ -56,6 +65,17 @@ export class JSON<T = any> {
   } : T;
 
   /**
+   * Retrieves a deeply nested JSON element referenced by the RFC6901 JSON pointer.
+   * 
+   * This is much faster than recursing down with .get()/.expand() but
+   * it will still have an O(n) complexity relative to the arrays and objects
+   * sizes since simdjson stores arrays and objects as lists.
+   * 
+   * @returns {any}
+   */
+  path<PATH extends string>(rfc6901: PATH): T extends Record<string | number, any> ? RFC6901<T, PATH> : never;
+
+  /**
    * Converts the binary representation to a JS object.
    * 
    * Will block the event loop while the conversion is running.
@@ -89,7 +109,7 @@ export class JSON<T = any> {
    * 
    * @returns {any}
    */
-  proxify() : JSONProxy<T>
+  proxify(): JSONProxy<T>;
 
   /**
    * Allows to change the default latency limit.

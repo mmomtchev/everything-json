@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { assert } from 'chai';
-import type { FeatureCollection, Polygon } from 'geojson';
+import type { FeatureCollection, Polygon, Geometry } from 'geojson';
 
 import { JSON as JSONAsync } from 'everything-json';
 
@@ -21,6 +21,16 @@ describe('from string', () => {
       .get().coordinates.get()[10].get()[2].get()[0].get(), -55.946, 1e-3);
     assert.closeTo((features[0].get().geometry as JSONAsync<Polygon>)
       .get().coordinates.get()[10].get()[2].expand()[0], -55.946, 1e-3);
+  });
+
+  it('path()', () => {
+    const document = JSONAsync.parse<FeatureCollection>(text);
+    const geometry: Geometry = document.path('/features/0/geometry').toObject();
+    assert.deepEqual(geometry, expected.features[0].geometry);
+
+    assert.throws(() => {
+      document.path('!!');
+    }, /INVALID_JSON_POINTER: Invalid JSON pointer/);
   });
 
   it('toObject()', () => {

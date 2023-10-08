@@ -36,6 +36,8 @@ Due to the limitations of the V8 engine, the second stage - `.get()` / `.expand(
 
 `.proxify()` allows to create JavaScript `Proxy` that will create the illusion of working with a real object, intercepting requests to retrieve a property and calling `.expand()` behind the scenes. While practical for accessing a few values, this is also substantially slower.
 
+`.path(rfc6901: string)` can retrieve directly a deeply nested JSON element specified by a RFC6901 JSON pointer. This is much faster than recursing down with .get()/.expand() but it will still have an `O(n)` complexity relative to the arrays and objects sizes since `simdjson` stores arrays and objects as lists.
+
 If you have a choice, always read the data as a `Buffer` instead of `string` using the `utf-8` argument of `readFile`. It is 3 times faster and it also avoids a second UTF8 decoding pass when parsing the JSON data. `everything-json` supports reading from a `Buffer` if the data is UTF8.
 
 ## Sync mode
@@ -64,6 +66,16 @@ const document = await JSON.parseAsync(
 
 console.log(await document.get().features.get()[0].get().geometry.get()
   .coordinates.get()[10].toObjectAsync());
+```
+
+## With RFC6901 `path`
+
+```ts
+import { JSON } from 'everything-json';
+import * as fs from 'fs';
+
+const document = JSON.parse(fs.readFileSync('test/data/canada.json'));
+console.log(document.path('/features/0/geometry/coordinates/10/2/0').get());
 ```
 
 ## With `proxify`

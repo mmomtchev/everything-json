@@ -27,7 +27,7 @@ shared_ptr<padded_string> JSON::GetString(const CallbackInfo &info) {
   Napi::Env env(info.Env());
 
   if (info.Length() != 1 || (!info[0].IsString() && !info[0].IsBuffer())) {
-    throw TypeError::New(env, "JSON.Parse expects a single string or Buffer argument");
+    throw TypeError::New(env, "JSON.parse{Async} expects a single string or Buffer argument");
   }
 
   auto parser_ = make_shared<parser>();
@@ -210,4 +210,25 @@ Value JSON::ToObject(Napi::Env env, const element &root) {
     throw Error::New(env, "Invalid JSON element");
   }
   return scope.Escape(result);
+}
+
+Value JSON::Path(const CallbackInfo &info) {
+  Napi::Env env(info.Env());
+  auto instance = env.GetInstanceData<InstanceData>();
+
+  if (info.Length() != 1 || !info[0].IsString()) {
+    throw TypeError::New(env, "JSON.path expects a single string");
+  }
+
+  try {
+    auto path = info[0].ToString().Utf8Value();
+    dom::element element = root.at_pointer(path);
+
+    JSONElementContext context(input_text, parser_, document, element);
+    napi_value ctor_args = External<JSONElementContext>::New(env, &context);
+    auto r = instance->JSON_ctor.Value().New(1, &ctor_args);
+    return r;
+  } catch (const exception &err) {
+    throw Error::New(env, err.what());
+  }
 }
