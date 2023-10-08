@@ -93,6 +93,7 @@ public:
   Napi::Value ToObject(const CallbackInfo &);
   Napi::Value ToObjectAsync(const CallbackInfo &);
 
+  Napi::Value TypeGetter(const CallbackInfo &);
   static Napi::Value LatencyGetter(const CallbackInfo &);
   static void LatencySetter(const CallbackInfo &, const Napi::Value &);
   static Napi::Value SIMDGetter(const CallbackInfo &);

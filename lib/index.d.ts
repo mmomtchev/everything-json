@@ -18,6 +18,14 @@ export type RFC6901<T extends Record<string | number, any>, PATH extends string>
 export class JSON<T = any> {
   constructor();
 
+  type: T extends Array<any> ? 'array' :
+    T extends Record<string, any> ? 'object' :
+    T extends string ? 'string' :
+    T extends number ? 'number' :
+    T extends boolean ? 'boolean' :
+    T extends null ? 'null' :
+    any;
+
   /**
    * Parse a string and return its binary representation.
    * 

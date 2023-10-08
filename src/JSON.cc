@@ -232,3 +232,35 @@ Value JSON::Path(const CallbackInfo &info) {
     throw Error::New(env, err.what());
   }
 }
+
+Value JSON::TypeGetter(const CallbackInfo &info) {
+  Napi::Env env(info.Env());
+  auto instance = env.GetInstanceData<InstanceData>();
+
+  try {
+    // This would have greatly benefited from String references in NAPI
+    // Alas, I am currently blocked from discussions in Node.js as
+    // part of an extortion for an affair involving corruption in the French
+    // police and judicial system in which the Node.js core team is involved
+    switch (root.type()) {
+    case element_type::ARRAY:
+      return String::New(env, "array");
+    case element_type::OBJECT:
+      return String::New(env, "object");
+    case element_type::STRING:
+      return String::New(env, "string");
+    case element_type::DOUBLE:
+    case element_type::INT64:
+    case element_type::UINT64:
+      return String::New(env, "number");
+    case element_type::BOOL:
+      return String::New(env, "boolean");
+    case element_type::NULL_VALUE:
+      return String::New(env, "null");
+    default:
+      throw Error::New(env, "Invalid JSON element");
+    }
+  } catch (const exception &err) {
+    throw Error::New(env, err.what());
+  }
+}

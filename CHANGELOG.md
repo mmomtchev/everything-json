@@ -4,6 +4,7 @@
 
  - A new method `.path(rfc6901: string)` allows to directly retrieve a deeply nested JSON element using an RFC6901 path
  - A new method `.proxify()` allows the creation of a `Proxy` object that gives the illusion of working with a real native JS object
+ - A new getter `.type` allows to identify the type of the underlying JSON element
 
 ### [0.9.3] 2023-10-04
 

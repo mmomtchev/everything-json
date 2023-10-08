@@ -38,6 +38,8 @@ Due to the limitations of the V8 engine, the second stage - `.get()` / `.expand(
 
 `.path(rfc6901: string)` can retrieve directly a deeply nested JSON element specified by an RFC6901 JSON pointer. This is much faster than recursing down with .get()/.expand() but it will still have an `O(n)` complexity relative to the arrays and objects sizes since `simdjson` stores arrays and objects as lists.
 
+`.type` allows to identify the type of the underlying JSON element: `array | object | string | boolean | number | null`.
+
 If you have a choice, always read the data as a `Buffer` instead of `string` using the `utf-8` argument of `readFile`. It is 3 times faster and it also avoids a second UTF8 decoding pass when parsing the JSON data. `everything-json` supports reading from a `Buffer` if the data is UTF8.
 
 ## Sync mode

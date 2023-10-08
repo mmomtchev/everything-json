@@ -31,6 +31,21 @@ describe('from string', () => {
     assert.throws(() => {
       document.path('!!');
     }, /INVALID_JSON_POINTER: Invalid JSON pointer/);
+
+    assert.throws(() => {
+      document.path('/invalid');
+    }, /NO_SUCH_FIELD: The JSON field/);
+  });
+
+  it('type()', () => {
+    const document = JSONAsync.parse<FeatureCollection>(text);
+
+    assert.strictEqual(document.type, 'object');
+    assert.strictEqual(document.get().features.type, 'array');
+    assert.strictEqual(document.get().features.get()[0].type, 'object');
+    assert.strictEqual(document.get().features.get()[0].get().geometry.type, 'object');
+    assert.strictEqual((document.get().features.get()[0].get().geometry as JSONAsync<Polygon>)
+      .get().coordinates.get()[10].get()[2].get()[0].type, 'number');
   });
 
   it('toObject()', () => {
