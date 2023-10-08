@@ -4,7 +4,7 @@ export type JSONType<T> = T extends Array<any> ? 'array' :
   T extends number ? 'number' :
   T extends boolean ? 'boolean' :
   T extends null ? 'null' :
-  any;
+  'array' | 'object' | 'string' | 'number' | 'boolean' | 'null';
 
 export type JSONProxy<T> = T extends Record<string | number, any> ? {
   [P in keyof T]: JSONProxy<T[P]>;
