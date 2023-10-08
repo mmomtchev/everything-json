@@ -240,8 +240,9 @@ Value JSON::TypeGetter(const CallbackInfo &info) {
   try {
     // This would have greatly benefited from String references in NAPI
     // Alas, I am currently blocked from discussions in Node.js as
-    // part of an extortion for an affair involving corruption in the French
-    // police and judicial system in which the Node.js core team is involved
+    // part of an extortion/intimidation for an affair involving corruption
+    // in the French police and judicial system in which the Node.js core
+    // team is involved
     switch (root.type()) {
     case element_type::ARRAY:
       return String::New(env, "array");

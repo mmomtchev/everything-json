@@ -1,8 +1,17 @@
+export type JSONType<T> = T extends Array<any> ? 'array' :
+  T extends Record<string, any> ? 'object' :
+  T extends string ? 'string' :
+  T extends number ? 'number' :
+  T extends boolean ? 'boolean' :
+  T extends null ? 'null' :
+  any;
+
 export type JSONProxy<T> = T extends Record<string | number, any> ? {
   [P in keyof T]: JSONProxy<T[P]>;
 } & {
-  toObject: () => T;
-  toObjectAsync: () => Promise<T>;
+  [JSON.symbolToObject]: () => T;
+  [JSON.symbolToObjectAsync]: () => Promise<T>;
+  [JSON.symbolType]: JSONType<T>;
 } : T;
 
 export type RFC6901<T extends Record<string | number, any>, PATH extends string> =
@@ -18,13 +27,12 @@ export type RFC6901<T extends Record<string | number, any>, PATH extends string>
 export class JSON<T = any> {
   constructor();
 
-  type: T extends Array<any> ? 'array' :
-    T extends Record<string, any> ? 'object' :
-    T extends string ? 'string' :
-    T extends number ? 'number' :
-    T extends boolean ? 'boolean' :
-    T extends null ? 'null' :
-    any;
+  /**
+   * The underlying type of the JSON element
+   * 
+   * @type {'object' | 'array' | 'string' | 'number' | 'boolean' | 'null'}
+   */
+  type: JSONType<T>;
 
   /**
    * Parse a string and return its binary representation.
@@ -140,4 +148,19 @@ export class JSON<T = any> {
    * @property {string}
    */
   static readonly simd: 'icelake' | 'haswell' | 'westmere' | 'arm64' | 'ppc64' | 'fallback';
+
+  /**
+   * Symbol.toObject to be used for Proxies
+   */
+  static readonly symbolToObject: unique symbol;
+
+  /**
+   * Symbol.toObjectAsync to be used for Proxies
+   */
+  static readonly symbolToObjectAsync: unique symbol;
+
+  /**
+   * Symbol.type to be used for Proxies
+   */
+  static readonly symbolType: unique symbol;
 }
