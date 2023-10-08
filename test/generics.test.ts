@@ -76,8 +76,8 @@ describe('TypeScript generics', () => {
     assert.isNumber<number>(document.path('/array/1').toObject());
     assert.isNumber<number>(document.path('/array').path('/1').toObject());
     assert.isObject<typeof structured['object']>(document.path('/object').toObject());
-    assert.isObject<number>(document.path('/object/number').toObject());
-    assert.isObject<number>(document.path('/object').path('/number').toObject());
+    assert.isNumber<number>(document.path('/object/number').toObject());
+    assert.isNumber<number>(document.path('/object').path('/number').toObject());
     assert.isObject<Record<string, never>>(document.path('/object/empty').toObject());
     assert.isObject<Record<string, never>>(document.path('/object').path('/empty').toObject());
     assert.isString<string>(document.path('/0').toObject());
