@@ -47,7 +47,7 @@ jobs:
           cd test
           npx mocha --require ts-node/register --types mocha --reporter=tap --v8-expose-gc *.test.ts *.standalone.*js
         env:
-          TS_NODE_PROJECT: tsconfig.standalone.json 
+          TS_NODE_COMPILER_OPTIONS: '{ "strictNullChecks": true, "noEmit": true, "types": [ "node", "mocha", "chai", "chai-as-promised" ] }'
 
 
   test_npm_rebuild:
@@ -89,4 +89,4 @@ jobs:
           cd test
           npx mocha --require ts-node/register --types mocha --reporter=tap --v8-expose-gc *.test.ts *.standalone.*js
         env:
-          TS_NODE_PROJECT: tsconfig.standalone.json 
+          TS_NODE_COMPILER_OPTIONS: '{ "strictNullChecks": true, "noEmit": true, "types": [ "node", "mocha", "chai", "chai-as-promised" ] }'
