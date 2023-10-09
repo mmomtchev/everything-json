@@ -4,6 +4,7 @@
     "noEmit": true,
     "target": "es2020",
     "module": "commonjs",
+    "strictNullChecks": true,
     "types": [ "node", "mocha", "chai", "chai-as-promised" ]
   }
 }
