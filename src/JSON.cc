@@ -235,8 +235,6 @@ Value JSON::Path(const CallbackInfo &info) {
 
 Value JSON::TypeGetter(const CallbackInfo &info) {
   Napi::Env env(info.Env());
-  auto instance = env.GetInstanceData<InstanceData>();
-
   try {
     // This would have greatly benefited from String references in NAPI
     // Alas, I am currently blocked from discussions in Node.js as
