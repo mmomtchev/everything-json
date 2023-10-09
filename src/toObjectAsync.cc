@@ -122,18 +122,18 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
 #ifdef DEBUG_VERBOSE
           printf("%.*s [%u] = %s\n",
             (int)stack.size(), "                       ",
-            (unsigned)previous->idx, result.ToString().Utf8Value().c_str());
+            (unsigned)previous->idx, result.As<String>().Utf8Value().c_str());
 #endif
           break;
         }
         case element_type::OBJECT: {
-          Object object = previous->ref.Value().ToObject();
+          Object object = previous->ref.Value().As<Object>();
           auto key = (*previous->iterator.object.idx).key.data();
           object.Set(key, result);
 #ifdef DEBUG_VERBOSE
           printf("%.*s {%s} = %s\n",
             (int)stack.size(), "                       ",
-            key, result.ToString().Utf8Value().c_str());
+            key, result.As<String>().Utf8Value().c_str());
 #endif
           break;
         }

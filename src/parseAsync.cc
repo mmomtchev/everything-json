@@ -17,9 +17,10 @@ Value JSON::ParseAsync(const CallbackInfo &info) {
     virtual void OnOK() override {
       Napi::Env env = Env();
       auto instance = env.GetInstanceData<InstanceData>();
-      JSONElementContext context(json_text, parser_, document, *document.get());
+      element root = *document.get();
+      JSONElementContext context(json_text, parser_, document, root);
       napi_value ctor_args = External<JSONElementContext>::New(env, &context);
-      auto result = instance->JSON_ctor.Value().New(1, &ctor_args);
+      auto result = New(instance, root, context.store_json.get(), &ctor_args);
       deferred.Resolve(result);
     }
     virtual void OnError(const Napi::Error &e) override { deferred.Reject(e.Value()); }

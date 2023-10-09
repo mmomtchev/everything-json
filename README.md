@@ -135,6 +135,21 @@ import type { FeatureCollection } from 'geojson';
 const document = JSON.parse<FeatureCollection>(geojson);
 ```
 
+# The Object Store
+
+`everything-json` has the very special property that allows:
+
+```js
+const text = fs.readFileSync(file);
+const document = JSONAsync.parse(text);
+
+const root1 = document.get();
+const root2 = document.get();
+assert.strictEqual(root1, root2);
+```
+
+Every time `.get()`/`expand()` returns an object, `everything-json` keep a weak reference that object and it will immediately return it on any subsequent calls. Not only this has all the advantages of a cache - an object is constructed only once - but it also allows to use natural JavaScript comparisons and especially allows to avoid expensive rerendering when using it with server-side React.
+
 # Current status
 
 Usable alpha version

@@ -2,7 +2,8 @@
 
 JSONElementContext::JSONElementContext(const shared_ptr<padded_string> &_input_text, const shared_ptr<parser> &_parser_,
                                        const shared_ptr<element> &_document, const element &_root)
-    : input_text(_input_text), parser_(_parser_), document(_document), root(_root) {}
+    : input_text(_input_text), parser_(_parser_), document(_document), store_json(make_shared<ObjectStore>()),
+      store_get(make_shared<ObjectStore>()), store_expand(make_shared<ObjectStore>()), root(_root) {}
 
 JSONElementContext::JSONElementContext() {}
 
@@ -19,6 +20,9 @@ JSON::JSON(const CallbackInfo &info) : ObjectWrap<JSON>(info) {
   parser_ = context->parser_;
   document = context->document;
   root = context->root;
+  store_json = context->store_json;
+  store_get = context->store_get;
+  store_expand = context->store_expand;
 }
 
 JSON::~JSON() {}
@@ -56,9 +60,9 @@ Value JSON::LatencyGetter(const CallbackInfo &info) {
 
 void JSON::LatencySetter(const CallbackInfo &info, const Napi::Value &val) {
   Napi::Env env(info.Env());
-  if (!val.IsNumber() || val.ToNumber().Int32Value() <= 0)
+  if (!val.IsNumber() || val.As<Number>().Int32Value() <= 0)
     throw TypeError::New(env, "Invalid value, must be a positive number in milliseconds");
-  latency = val.ToNumber().Int32Value();
+  latency = val.As<Number>().Int32Value();
 }
 
 Value JSON::SIMDGetter(const CallbackInfo &info) {
@@ -80,11 +84,10 @@ Value JSON::Parse(const CallbackInfo &info) {
     auto json = GetString(info);
     auto document = make_shared<element>(parser_->parse(*json));
 
-    JSONElementContext context(json, parser_, document, *document.get());
-
+    element root = *document.get();
+    JSONElementContext context(json, parser_, document, root);
     napi_value ctor_args = External<JSONElementContext>::New(env, &context);
-    auto r = instance->JSON_ctor.Value().New(1, &ctor_args);
-    return r;
+    return New(instance, root, context.store_json.get(), &ctor_args);
   } catch (const exception &err) {
     throw Error::New(env, err.what());
   }
@@ -110,9 +113,15 @@ Value JSON::GetPrimitive(Napi::Env env, const element &el) {
 }
 
 Value JSON::Get(Napi::Env env, bool expand) {
+  ObjectStore *store = expand ? store_expand.get() : store_get.get();
+  if (store->count(root)) {
+    auto &ref = store->find(root)->second;
+    assert(!ref.IsEmpty());
+    return ref.Value();
+  }
+
   auto instance = env.GetInstanceData<InstanceData>();
   Napi::Value sub;
-
   try {
     switch (root.type()) {
     case element_type::ARRAY: {
@@ -126,12 +135,13 @@ Value JSON::Get(Napi::Env env, bool expand) {
       for (element child : dom::array(root)) {
         if (!expand || (child.is_array() || child.is_object())) {
           context.root = child;
-          sub = instance->JSON_ctor.Value().New(1, &ctor_args);
+          sub = New(instance, child, store_json.get(), &ctor_args);
         } else
           sub = GetPrimitive(env, child);
         array.Set(i, sub);
         i++;
       }
+      store->emplace(root, move(Weak(array.As<Object>())));
       return array;
     }
     case element_type::OBJECT: {
@@ -144,11 +154,12 @@ Value JSON::Get(Napi::Env env, bool expand) {
         const auto &child = field.value;
         if (!expand || (child.is_array() || child.is_object())) {
           context.root = child;
-          sub = instance->JSON_ctor.Value().New(1, &ctor_args);
+          sub = New(instance, child, store_json.get(), &ctor_args);
         } else
           sub = GetPrimitive(env, child);
         object.Set(field.key.data(), sub);
       }
+      store->emplace(root, move(Weak(object)));
       return object;
     }
     default:
@@ -221,7 +232,7 @@ Value JSON::Path(const CallbackInfo &info) {
   }
 
   try {
-    auto path = info[0].ToString().Utf8Value();
+    auto path = info[0].As<String>().Utf8Value();
     dom::element element = root.at_pointer(path);
 
     JSONElementContext context(input_text, parser_, document, element);

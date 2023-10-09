@@ -1,13 +1,16 @@
 #ifndef JSON_ASYNC_H
 #define JSON_ASYNC_H
-#define NAPI_VERSION 6
 #define SIMDJSON_EXCEPTIONS 1
 #include "simdjson.h"
+
 #include <chrono>
 #include <functional>
-#include <napi.h>
+#include <map>
 #include <queue>
 #include <string>
+
+#define NAPI_VERSION 6
+#include <napi.h>
 #include <uv.h>
 
 using namespace Napi;
@@ -21,6 +24,8 @@ struct InstanceData {
   uv_async_t runQueueJob;
 };
 
+typedef map<element, ObjectReference> ObjectStore;
+
 struct JSONElementContext {
   // The input string
   shared_ptr<padded_string> input_text;
@@ -29,10 +34,14 @@ struct JSONElementContext {
   shared_ptr<parser> parser_;
   shared_ptr<element> document;
 
+  // The object store - contains weak refs to objects returned to JS
+  shared_ptr<ObjectStore> store_json, store_get, store_expand;
+
   // The root of this subvalue
   element root;
 
-  JSONElementContext(const shared_ptr<padded_string> &, const shared_ptr<parser> &, const shared_ptr<element> &, const element &);
+  JSONElementContext(const shared_ptr<padded_string> &, const shared_ptr<parser> &, const shared_ptr<element> &,
+                     const element &);
   JSONElementContext();
 };
 
@@ -69,10 +78,12 @@ struct Context {
   Context(Napi::Env, Napi::Value);
 };
 
-};
+}; // namespace ToObjectAsync
 
 class JSON : public ObjectWrap<JSON>, JSONElementContext {
   static unsigned latency;
+
+  static inline Napi::Value New(InstanceData *, const element &, ObjectStore *store, const napi_value *);
 
   static Napi::Value ToObject(Napi::Env, const element &);
   static void ToObjectAsync(shared_ptr<ToObjectAsync::Context>, high_resolution_clock::time_point);
@@ -103,4 +114,17 @@ public:
 
   static Function GetClass(Napi::Env env);
 };
+
+Napi::Value JSON::New(InstanceData *instance, const element &el, ObjectStore *store, const napi_value *context) {
+  if (store->count(el)) {
+    auto &ref = store->find(el)->second;
+    assert(!ref.IsEmpty());
+    return ref.Value();
+  }
+
+  Napi::Value r;
+  r = instance->JSON_ctor.Value().New(1, context);
+  store->emplace(el, move(Weak(r.As<Object>())));
+  return r;
+}
 #endif
