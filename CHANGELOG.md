@@ -1,6 +1,6 @@
 # Changelog
 
-### [0.9.4]
+### [0.9.4] 2023-10-09
 
  - A new method `.path(rfc6901: string)` allows to directly retrieve a deeply nested JSON element using an RFC6901 path
  - A new method `.proxify()` allows the creation of a `Proxy` object that gives the illusion of working with a real native JS object
