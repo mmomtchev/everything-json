@@ -3,34 +3,61 @@
 ### Table of Contents
 
 *   [JSON][1]
-    *   [get][2]
-    *   [expand][3]
-    *   [toObject][4]
-    *   [toObjectAsync][5]
-    *   [parse][6]
-        *   [Parameters][7]
-    *   [parseAsync][8]
-        *   [Parameters][9]
-    *   [latency][10]
-    *   [simdjson\_version][11]
-    *   [simd][12]
+    *   [type][2]
+    *   [get][3]
+    *   [expand][4]
+    *   [path][5]
+        *   [Parameters][6]
+    *   [toObject][7]
+    *   [toObjectAsync][8]
+    *   [proxify][9]
+    *   [parse][10]
+        *   [Parameters][11]
+    *   [parseAsync][12]
+        *   [Parameters][13]
+    *   [latency][14]
+    *   [simdjson\_version][15]
+    *   [simd][16]
+    *   [symbolToObject][17]
+    *   [symbolToObjectAsync][18]
+    *   [symbolType][19]
 
 ## JSON
 
 A binary representation of a JSON element
 
+### type
+
+The underlying type of the JSON element
+
+Type: (`"object"` | `"array"` | `"string"` | `"number"` | `"boolean"` | `"null"`)
+
 ### get
 
 Retrieve a subtree out of the binary JSON object.
 
-Returns **([string][13] | [boolean][14] | [number][15] | null | [Array][16]<[JSON][1]> | Record<[string][13], [JSON][1]>)**&#x20;
+Returns **([string][20] | [boolean][21] | [number][22] | null | [Array][23]<[JSON][1]> | Record<[string][20], [JSON][1]>)**&#x20;
 
 ### expand
 
 Retrieve a subtree out of the binary JSON object
 automatically expanding primitive values.
 
-Returns **([Array][16]<([JSON][1] | [string][13] | [boolean][14] | [number][15] | null)> | Record<[string][13], ([JSON][1] | [string][13] | [boolean][14] | [number][15] | null)> | [string][13] | [boolean][14] | [number][15] | null)**&#x20;
+Returns **([Array][23]<([JSON][1] | [string][20] | [boolean][21] | [number][22] | null)> | Record<[string][20], ([JSON][1] | [string][20] | [boolean][21] | [number][22] | null)> | [string][20] | [boolean][21] | [number][22] | null)**&#x20;
+
+### path
+
+Retrieves a deeply nested JSON element referenced by the RFC6901 JSON pointer.
+
+This is much faster than recursing down with .get()/.expand() but
+it will still have an O(n) complexity relative to the arrays and objects
+sizes since simdjson stores arrays and objects as lists.
+
+#### Parameters
+
+*   `rfc6901` **PATH**&#x20;
+
+Returns **any**&#x20;
 
 ### toObject
 
@@ -53,7 +80,17 @@ to allow other tasks to run.
 Allows to convert only a small subtree out of a larger
 document.
 
-Returns **[Promise][17]\<any>**&#x20;
+Returns **[Promise][24]\<any>**&#x20;
+
+### proxify
+
+Creates a Proxy object that gives the illusion of a real object.
+
+This is an instantaneous zero-latency method for creating a
+`Proxy` object that works (almost) like a real object but
+calls .expand() when needs to retrieve a property.
+
+Returns **any**&#x20;
 
 ### parse
 
@@ -65,7 +102,7 @@ to the built-in JSON parser.
 
 #### Parameters
 
-*   `text` **[string][13]** JSON to parse
+*   `text` **[string][20]** JSON to parse
 
 Returns **[JSON][1]**&#x20;
 
@@ -80,9 +117,9 @@ JSON parser.
 
 #### Parameters
 
-*   `text` **[string][13]** JSON to parse
+*   `text` **[string][20]** JSON to parse
 
-Returns **[Promise][17]<[JSON][1]>**&#x20;
+Returns **[Promise][24]<[JSON][1]>**&#x20;
 
 ### latency
 
@@ -90,13 +127,13 @@ Allows to change the default latency limit.
 
 CPU will be yielded every `latency` milliseconds.
 
-Type: [number][15]
+Type: [number][22]
 
 ### simdjson\_version
 
 The currently used simdjson version.
 
-Type: [string][13]
+Type: [string][20]
 
 ### simd
 
@@ -104,36 +141,68 @@ The currently used SIMD implementation.
 
 Type: (`"icelake"` | `"haswell"` | `"westmere"` | `"arm64"` | `"ppc64"` | `"fallback"`)
 
+### symbolToObject
+
+Symbol.toObject to be used for Proxies
+
+Type: any
+
+### symbolToObjectAsync
+
+Symbol.toObjectAsync to be used for Proxies
+
+Type: any
+
+### symbolType
+
+Symbol.type to be used for Proxies
+
+Type: any
+
 [1]: #json
 
-[2]: #get
+[2]: #type
 
-[3]: #expand
+[3]: #get
 
-[4]: #toobject
+[4]: #expand
 
-[5]: #toobjectasync
+[5]: #path
 
-[6]: #parse
+[6]: #parameters
 
-[7]: #parameters
+[7]: #toobject
 
-[8]: #parseasync
+[8]: #toobjectasync
 
-[9]: #parameters-1
+[9]: #proxify
 
-[10]: #latency
+[10]: #parse
 
-[11]: #simdjson_version
+[11]: #parameters-1
 
-[12]: #simd
+[12]: #parseasync
 
-[13]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
+[13]: #parameters-2
 
-[14]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+[14]: #latency
 
-[15]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
+[15]: #simdjson_version
 
-[16]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
+[16]: #simd
 
-[17]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
+[17]: #symboltoobject
+
+[18]: #symboltoobjectasync
+
+[19]: #symboltype
+
+[20]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String
+
+[21]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+
+[22]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number
+
+[23]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
+
+[24]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
