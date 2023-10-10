@@ -46,14 +46,9 @@ describe('stress', function () {
       .catch(done);
   });
 
-  it.only('ensure the object store handles dying objects', function (done) {
+  it('ensure the object store handles dying objects', function (done) {
     (async function () {
-      const q: Promise<JSONAsync>[] = [];
-      for (let i = 0; i < texts.length; i++) {
-        const idx = i % texts.length;
-        q.push(JSONAsync.parseAsync(texts[idx]));
-      }
-      const json = await Promise.all(q);
+      const json = await JSONAsync.parseAsync(texts[0]);
 
       async function getRandomElement(json: JSONAsync) {
         let current = json;
@@ -76,8 +71,7 @@ describe('stress', function () {
       }
 
       for (let i = 0; i < 1e5; i++) {
-        //const doc = Math.floor(Math.random() * texts.length);
-        await getRandomElement(json[0]);
+        await getRandomElement(json);
       }
     })()
       .then(done)
