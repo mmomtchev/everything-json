@@ -152,10 +152,6 @@ Every time `.get()`/`expand()` returns an object, `everything-json` keep a weak 
 
 `.toObject()` / `.toObjectAsync()` are excluded from this cache as it is expected that these methods will be used only once. This allows to avoid any extra allocation in these performance-critical functions.
 
-# Current status
-
-Usable alpha version
-
 # Full API
 
 Read it [here](https://github.com/mmomtchev/everything-json/blob/main/doc/API.md).
