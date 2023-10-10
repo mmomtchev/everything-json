@@ -26,6 +26,16 @@ struct InstanceData {
 
 typedef map<element, ObjectReference> ObjectStore;
 
+/**
+ * The internal information required to identify a JSON element
+ * in the simdjson parsed binary representation.
+ *
+ * All JSON elements in the same document share the same pointers
+ * to the input text, the parser and the main root element (the document root).
+ * They also share the same object stores.
+ * 
+ * root is the root of the element.
+ */
 struct JSONElementContext {
   // The input string
   shared_ptr<padded_string> input_text;
@@ -47,8 +57,11 @@ struct JSONElementContext {
 };
 
 namespace ToObjectAsync {
-// This is the state for the iterative tree traversal
-// of ToObjectAsync
+
+/**
+ * This is one element of the stack for the state for the iterative tree
+ * traversal of ToObjectAsync
+ */
 struct Element {
   element item;
   union {
@@ -66,6 +79,10 @@ struct Element {
   Element(const element &);
 };
 
+/**
+ * This is the state information for the iterative tree
+ * traversal of ToObjectAsync
+ */
 struct Context {
   Napi::Env env;
   // The JSON wrapped object
@@ -81,6 +98,11 @@ struct Context {
 
 }; // namespace ToObjectAsync
 
+
+/**
+ * The JavaScript proxy object for a JSON element in the binary parsed
+ * structure of simdjson.
+ */
 class JSON : public ObjectWrap<JSON>, JSONElementContext {
   static unsigned latency;
 
@@ -116,16 +138,19 @@ public:
   static Function GetClass(Napi::Env env);
 };
 
-Napi::Value JSON::New(InstanceData *instance, const element &el, ObjectStore *store, const napi_value *context) {
-  if (store->count(el)) {
-    auto &ref = store->find(el)->second;
-    if (!ref.IsEmpty() && !ref.Value().IsEmpty()) {
-      return ref.Value();
-    } else {
-      store->erase(el);
-    }
+#define TRY_RETURN_FROM_STORE(store, el)                                                                               \
+  if ((store)->count(el)) {                                                                                            \
+    assert((store)->count(el) == 1);                                                                                   \
+    auto &ref = (store) -> find(el) -> second;                                                                         \
+    if (!ref.IsEmpty() && !ref.Value().IsEmpty()) {                                                                    \
+      return ref.Value();                                                                                              \
+    } else {                                                                                                           \
+      (store)->erase(el);                                                                                              \
+    }                                                                                                                  \
   }
 
+Napi::Value JSON::New(InstanceData *instance, const element &el, ObjectStore *store, const napi_value *context) {
+  TRY_RETURN_FROM_STORE(store, el);
   Napi::Value r;
   r = instance->JSON_ctor.Value().New(1, context);
   store->emplace(el, move(Weak(r.As<Object>())));

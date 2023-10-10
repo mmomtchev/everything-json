@@ -148,7 +148,7 @@ const root2 = document.get();
 assert.strictEqual(root1, root2);
 ```
 
-Every time `.get()`/`expand()` returns an object, `everything-json` keep a weak reference that object and it will immediately return it on any subsequent calls. Not only this has all the advantages of a cache - an object is constructed only once - but it also allows to use natural JavaScript comparisons and especially allows to avoid expensive rerendering when using it with server-side React.
+Every time `.get()`/`expand()` returns an object, `everything-json` keep a weak reference that object and it will immediately return it on any subsequent calls - as long as the GC hasn't collected it. This permits for efficient long-term storage of JSON data structures in their binary representation, retrieving individual values as they are needed.
 
 # Current status
 

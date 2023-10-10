@@ -126,14 +126,7 @@ Value JSON::GetPrimitive(Napi::Env env, const element &el) {
 
 Value JSON::Get(Napi::Env env, bool expand) {
   ObjectStore *store = expand ? store_expand.get() : store_get.get();
-  if (store->count(root)) {
-    auto &ref = store->find(root)->second;
-    if (!ref.IsEmpty() && !ref.Value().IsEmpty()) {
-      return ref.Value();
-    } else {
-      store->erase(root);
-    }
-  }
+  TRY_RETURN_FROM_STORE(store, root);
 
   auto instance = env.GetInstanceData<InstanceData>();
   Napi::Value sub;

@@ -49,6 +49,7 @@ describe('stress', function () {
   it('ensure the object store handles dying objects', function (done) {
     (async function () {
       const json = await JSONAsync.parseAsync(texts[0]);
+      const expected = await JSONAsync.parseAsync(texts[0]);
 
       async function getRandomElement(json: JSONAsync) {
         let current = json;
@@ -63,10 +64,14 @@ describe('stress', function () {
         } while (current.type === 'array' || current.type === 'object');
 
         assert.strictEqual(json.path(path), current);
-        if (typeof json.path(path).get() !== 'object')
+        assert.notEqual(json.path(path), expected.path(path));
+        if (typeof json.path(path).get() !== 'object') {
           assert.strictEqual(json.path(path).get(), current.get());
-        else
+          assert.strictEqual(current.get(), expected.path(path).get());
+        } else {
           assert.deepEqual(json.path(path).get(), current.get());
+          assert.deepEqual(current.get(), expected.path(path).get());
+        }
         return current.get();
       }
 

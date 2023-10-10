@@ -46,7 +46,10 @@ describe('uniqueness of objects', () => {
     const document = JSONAsync.parse<FeatureCollection>(text);
 
     const feature1 = document.get().features.get()[0];
-    const feature2 = document.path('/features/0');
+    const feature2 = document.get().features.expand()[0];
+    const feature3 = document.path('/features/0');
     assert.strictEqual(feature1, feature2);
+    assert.strictEqual(feature1, feature3);
+    assert.strictEqual(feature1, feature3);
   });
 });
