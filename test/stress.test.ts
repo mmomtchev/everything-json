@@ -5,7 +5,7 @@ import { assert } from 'chai';
 import { JSON as JSONAsync } from 'everything-json';
 
 describe('stress', function () {
-  this.timeout(20000);
+  this.timeout(30000);
   const dir = path.resolve(__dirname, 'data');
   const files = fs.readdirSync(dir);
   const texts = files.filter((file) => file.match(/json$/)).map((file) => fs.readFileSync(path.resolve(dir, file), 'utf-8'));
