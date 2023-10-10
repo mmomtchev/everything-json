@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as zlib from 'zlib';
+import * as os from 'os';
 import { assert } from 'chai';
 import type { FeatureCollection } from 'geojson';
 
@@ -23,7 +24,10 @@ it('toObjectAsync() yields the CPU', function (done) {
   JSONAsync.parseAsync<FeatureCollection>(jsonText)
     .then((jsonBinary) => {
       const elapsed = Date.now() - start;
-      console.log(`.parseAsync() latency: ${ticks} ticks for ${elapsed}ms, ${(100 * ticks / (elapsed / 10)).toFixed(2)}% passed`);
+      const passed = 100 * ticks / (elapsed / 10);
+      console.log(`.parseAsync() latency: ${ticks} ticks for ${elapsed}ms, ${passed.toFixed(2)}% passed`);
+      if (passed < 75)
+        console.log(`::notice title={${os.platform()}}::parseAsync():${passed.toFixed(2)}% ticks passed`);
 
       start = Date.now();
       ticks = 0;
@@ -34,8 +38,12 @@ it('toObjectAsync() yields the CPU', function (done) {
       assert.isArray(geojson.features);
 
       const elapsed = Date.now() - start;
-      console.log(`.toObjectAsync() latency: ${ticks} ticks for ${elapsed}ms, ${(100 * ticks / (elapsed / 10)).toFixed(2)}% passed`);
-      done();
+      const passed = 100 * ticks / (elapsed / 10);
+      console.log(`.toObjectAsync() latency: ${ticks} ticks for ${elapsed}ms, ${passed.toFixed(2)}% passed`);
+      if (passed < 75)
+        console.log(`::notice title={${os.platform()}}::parseAsync():${passed.toFixed(2)}% ticks passed`);
+
+        done();
     })
     .catch(done)
     .then(() => {
