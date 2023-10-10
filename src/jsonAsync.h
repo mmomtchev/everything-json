@@ -1,13 +1,16 @@
 #ifndef JSON_ASYNC_H
 #define JSON_ASYNC_H
-#define NAPI_VERSION 6
 #define SIMDJSON_EXCEPTIONS 1
 #include "simdjson.h"
+
 #include <chrono>
 #include <functional>
-#include <napi.h>
+#include <map>
 #include <queue>
 #include <string>
+
+#define NAPI_VERSION 6
+#include <napi.h>
 #include <uv.h>
 
 using namespace Napi;
@@ -21,6 +24,18 @@ struct InstanceData {
   uv_async_t runQueueJob;
 };
 
+typedef map<element, ObjectReference> ObjectStore;
+
+/**
+ * The internal information required to identify a JSON element
+ * in the simdjson parsed binary representation.
+ *
+ * All JSON elements in the same document share the same pointers
+ * to the input text, the parser and the main root element (the document root).
+ * They also share the same object stores.
+ * 
+ * root is the root of the element.
+ */
 struct JSONElementContext {
   // The input string
   shared_ptr<padded_string> input_text;
@@ -29,16 +44,24 @@ struct JSONElementContext {
   shared_ptr<parser> parser_;
   shared_ptr<element> document;
 
+  // The object store - contains weak refs to objects returned to JS
+  shared_ptr<ObjectStore> store_json, store_get, store_expand;
+
   // The root of this subvalue
   element root;
 
-  JSONElementContext(const shared_ptr<padded_string> &, const shared_ptr<parser> &, const shared_ptr<element> &, const element &);
+  JSONElementContext(const shared_ptr<padded_string> &, const shared_ptr<parser> &, const shared_ptr<element> &,
+                     const element &);
+  JSONElementContext(const JSONElementContext &parent, const element &);
   JSONElementContext();
 };
 
 namespace ToObjectAsync {
-// This is the state for the iterative tree traversal
-// of ToObjectAsync
+
+/**
+ * This is one element of the stack for the state for the iterative tree
+ * traversal of ToObjectAsync
+ */
 struct Element {
   element item;
   union {
@@ -56,6 +79,10 @@ struct Element {
   Element(const element &);
 };
 
+/**
+ * This is the state information for the iterative tree
+ * traversal of ToObjectAsync
+ */
 struct Context {
   Napi::Env env;
   // The JSON wrapped object
@@ -69,10 +96,17 @@ struct Context {
   Context(Napi::Env, Napi::Value);
 };
 
-};
+}; // namespace ToObjectAsync
 
+
+/**
+ * The JavaScript proxy object for a JSON element in the binary parsed
+ * structure of simdjson.
+ */
 class JSON : public ObjectWrap<JSON>, JSONElementContext {
   static unsigned latency;
+
+  static inline Napi::Value New(InstanceData *, const element &, ObjectStore *store, const napi_value *);
 
   static Napi::Value ToObject(Napi::Env, const element &);
   static void ToObjectAsync(shared_ptr<ToObjectAsync::Context>, high_resolution_clock::time_point);
@@ -92,7 +126,7 @@ public:
   Napi::Value Path(const CallbackInfo &);
   Napi::Value ToObject(const CallbackInfo &);
   Napi::Value ToObjectAsync(const CallbackInfo &);
-
+  Napi::Value ToStringGetter(const CallbackInfo &);
   Napi::Value TypeGetter(const CallbackInfo &);
   static Napi::Value LatencyGetter(const CallbackInfo &);
   static void LatencySetter(const CallbackInfo &, const Napi::Value &);
@@ -103,4 +137,23 @@ public:
 
   static Function GetClass(Napi::Env env);
 };
+
+#define TRY_RETURN_FROM_STORE(store, el)                                                                               \
+  if ((store)->count(el)) {                                                                                            \
+    assert((store)->count(el) == 1);                                                                                   \
+    auto &ref = (store) -> find(el) -> second;                                                                         \
+    if (!ref.IsEmpty() && !ref.Value().IsEmpty()) {                                                                    \
+      return ref.Value();                                                                                              \
+    } else {                                                                                                           \
+      (store)->erase(el);                                                                                              \
+    }                                                                                                                  \
+  }
+
+Napi::Value JSON::New(InstanceData *instance, const element &el, ObjectStore *store, const napi_value *context) {
+  TRY_RETURN_FROM_STORE(store, el);
+  Napi::Value r;
+  r = instance->JSON_ctor.Value().New(1, context);
+  store->emplace(el, move(Weak(r.As<Object>())));
+  return r;
+}
 #endif

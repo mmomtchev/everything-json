@@ -10,6 +10,7 @@
       "request": "launch",
       "program": "/usr/bin/node",
       "args": [
+        "-expose-gc",
         "${workspaceFolder}/node_modules/mocha/lib/cli/cli.js",
       ],
       "stopAtEntry": false,

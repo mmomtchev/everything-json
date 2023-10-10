@@ -1,5 +1,10 @@
 # Changelog
 
+# [1.0.0]
+
+ - Implement an object store keeping weak references to all objects returned to JavaScript and reusing them when possible
+ - In TypeScript, return `JSON<any>` for `JSON.path()` when the string cannot be parsed by the type system instead of `never`
+
 ### [0.9.4] 2023-10-09
 
  - A new method `.path(rfc6901: string)` allows to directly retrieve a deeply nested JSON element using an RFC6901 path

@@ -16,7 +16,10 @@
     "quotes": [
       "error",
       "single"
-    ]
+    ],
+    "mocha/no-exclusive-tests": "error",
+    "mocha/no-identical-title": "error",
+    "mocha/no-nested-tests": "error"
   },
   "plugins": [
     "mocha"

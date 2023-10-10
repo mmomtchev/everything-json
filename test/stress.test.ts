@@ -5,7 +5,7 @@ import { assert } from 'chai';
 import { JSON as JSONAsync } from 'everything-json';
 
 describe('stress', function () {
-  this.timeout(20000);
+  this.timeout(30000);
   const dir = path.resolve(__dirname, 'data');
   const files = fs.readdirSync(dir);
   const texts = files.filter((file) => file.match(/json$/)).map((file) => fs.readFileSync(path.resolve(dir, file), 'utf-8'));
@@ -41,6 +41,43 @@ describe('stress', function () {
           }));
       }
       await Promise.all(q);
+    })()
+      .then(done)
+      .catch(done);
+  });
+
+  it('ensure the object store handles dying objects', function (done) {
+    (async function () {
+      const json = await JSONAsync.parseAsync(texts[0]);
+      const expected = await JSONAsync.parseAsync(texts[0]);
+
+      async function getRandomElement(json: JSONAsync) {
+        let current = json;
+        let path = '';
+        do {
+          const allKeys = Object.keys(current.get());
+          if (allKeys.length === 0)
+            break;
+          const key = allKeys[Math.floor(Math.random() * allKeys.length)];
+          path += `/${key}`;
+          current = current.get()[key];
+        } while (current.type === 'array' || current.type === 'object');
+
+        assert.strictEqual(json.path(path), current);
+        assert.notEqual(json.path(path), expected.path(path));
+        if (typeof json.path(path).get() !== 'object') {
+          assert.strictEqual(json.path(path).get(), current.get());
+          assert.strictEqual(current.get(), expected.path(path).get());
+        } else {
+          assert.deepEqual(json.path(path).get(), current.get());
+          assert.deepEqual(current.get(), expected.path(path).get());
+        }
+        return current.get();
+      }
+
+      for (let i = 0; i < 1e5; i++) {
+        await getRandomElement(json);
+      }
     })()
       .then(done)
       .catch(done);
