@@ -28,7 +28,7 @@ export class JSON<T = any> {
   constructor();
 
   /**
-   * The underlying type of the JSON element
+   * The underlying type of the JSON element.
    * 
    * @type {'object' | 'array' | 'string' | 'number' | 'boolean' | 'null'}
    */
@@ -62,6 +62,9 @@ export class JSON<T = any> {
   /**
    * Retrieve a subtree out of the binary JSON object.
    * 
+   * Subsequent requests for the same element will return a reference
+   * to the same object for as long as the GC hasn't collected it.
+   * 
    * @returns {string | boolean | number | null | Array<JSON> | Record<string, JSON>}
    */
   get(): T extends Record<string | number, any> ? {
@@ -71,6 +74,9 @@ export class JSON<T = any> {
   /**
    * Retrieve a subtree out of the binary JSON object
    * automatically expanding primitive values.
+   * 
+   * Subsequent requests for the same element will return a reference
+   * to the same object for as long as the GC hasn't collected it.
    * 
    * @returns {(JSON | string | boolean | number | null) [] | Record<string, JSON | string | boolean | number | null> | string | boolean | number | null}
    */
@@ -84,6 +90,9 @@ export class JSON<T = any> {
    * This is much faster than recursing down with .get()/.expand() but
    * it will still have an O(n) complexity relative to the arrays and objects
    * sizes since simdjson stores arrays and objects as lists.
+   * 
+   * Subsequent requests for the same element will return a reference
+   * to the same object for as long as the GC hasn't collected it.
    * 
    * @returns {any}
    */

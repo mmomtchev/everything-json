@@ -28,7 +28,7 @@ A binary representation of a JSON element
 
 ### type
 
-The underlying type of the JSON element
+The underlying type of the JSON element.
 
 Type: (`"object"` | `"array"` | `"string"` | `"number"` | `"boolean"` | `"null"`)
 
@@ -36,12 +36,18 @@ Type: (`"object"` | `"array"` | `"string"` | `"number"` | `"boolean"` | `"null"`
 
 Retrieve a subtree out of the binary JSON object.
 
+Subsequent requests for the same element will return a reference
+to the same object for as long as the GC hasn't collected it.
+
 Returns **([string][20] | [boolean][21] | [number][22] | null | [Array][23]<[JSON][1]> | Record<[string][20], [JSON][1]>)**&#x20;
 
 ### expand
 
 Retrieve a subtree out of the binary JSON object
 automatically expanding primitive values.
+
+Subsequent requests for the same element will return a reference
+to the same object for as long as the GC hasn't collected it.
 
 Returns **([Array][23]<([JSON][1] | [string][20] | [boolean][21] | [number][22] | null)> | Record<[string][20], ([JSON][1] | [string][20] | [boolean][21] | [number][22] | null)> | [string][20] | [boolean][21] | [number][22] | null)**&#x20;
 
@@ -52,6 +58,9 @@ Retrieves a deeply nested JSON element referenced by the RFC6901 JSON pointer.
 This is much faster than recursing down with .get()/.expand() but
 it will still have an O(n) complexity relative to the arrays and objects
 sizes since simdjson stores arrays and objects as lists.
+
+Subsequent requests for the same element will return a reference
+to the same object for as long as the GC hasn't collected it.
 
 #### Parameters
 
