@@ -68,6 +68,11 @@ describe('from string', () => {
       .catch(done);
   });
 
+  it('toString()', () => {
+    const document = JSONAsync.parse<FeatureCollection>(text);
+    assert.strictEqual(document.toString(), '[object JSON<object>]');
+  });
+
   it('toObjectAsync()', function (done) {
     this.timeout(10000);
     JSONAsync.parseAsync(text)

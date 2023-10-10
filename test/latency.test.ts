@@ -43,7 +43,7 @@ it('toObjectAsync() yields the CPU', function (done) {
       if (passed < 75)
         console.log(`::notice title=${os.platform()}::parseAsync() ${passed.toFixed(2)}% ticks passed`);
 
-        done();
+      done();
     })
     .catch(done)
     .then(() => {
