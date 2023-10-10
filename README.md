@@ -92,7 +92,7 @@ console.log(document.features.[0].geometry.coordinates[10][2][0]);
 
 ## With `Next.js`
 
-`everything-json` can be used with `Next.js` - but only on the server side. It works particularly well with the new `app` router. Simply import it in your server-side component:
+`everything-json` can be used with `Next.js` - but only for data fetching on the server side. It works particularly well with the new `app` router. Simply import it in your server-side component:
 
 ```ts
 import { JSON as JSONAsync } from 'everything-json';
