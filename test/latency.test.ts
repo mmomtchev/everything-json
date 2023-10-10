@@ -27,7 +27,7 @@ it('toObjectAsync() yields the CPU', function (done) {
       const passed = 100 * ticks / (elapsed / 10);
       console.log(`.parseAsync() latency: ${ticks} ticks for ${elapsed}ms, ${passed.toFixed(2)}% passed`);
       if (passed < 75)
-        console.log(`::notice title={${os.platform()}}::parseAsync():${passed.toFixed(2)}% ticks passed`);
+        console.log(`::notice title=${os.platform()}::parseAsync() ${passed.toFixed(2)}% ticks passed`);
 
       start = Date.now();
       ticks = 0;
@@ -41,7 +41,7 @@ it('toObjectAsync() yields the CPU', function (done) {
       const passed = 100 * ticks / (elapsed / 10);
       console.log(`.toObjectAsync() latency: ${ticks} ticks for ${elapsed}ms, ${passed.toFixed(2)}% passed`);
       if (passed < 75)
-        console.log(`::notice title={${os.platform()}}::parseAsync():${passed.toFixed(2)}% ticks passed`);
+        console.log(`::notice title=${os.platform()}::parseAsync() ${passed.toFixed(2)}% ticks passed`);
 
         done();
     })
