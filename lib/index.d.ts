@@ -19,7 +19,7 @@ export type RFC6901<T extends Record<string | number, any>, PATH extends string>
   RFC6901<T[PROP], `/${SUB}`> :
   PATH extends `/${infer PROP}` ?
   JSON<T[PROP]> :
-  never;
+  JSON<any>;
 
 /**
  * A binary representation of a JSON element
