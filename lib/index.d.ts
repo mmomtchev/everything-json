@@ -94,9 +94,12 @@ export class JSON<T = any> {
    * Subsequent requests for the same element will return a reference
    * to the same object for as long as the GC hasn't collected it.
    * 
+   * @param {string} rfc6901 RFC6901-conformant JSON pointer
+   * @param {object} [opts={}] Options
+   * @param {boolean} [opts.throwOnError=true] Throw on error when true, return undefined when false
    * @returns {any}
    */
-  path<PATH extends string>(rfc6901: PATH): T extends Record<string | number, any> ? RFC6901<T, PATH> : never;
+  path<PATH extends string>(rfc6901: PATH, opts?: { throwOnError?: boolean }): T extends Record<string | number, any> ? RFC6901<T, PATH> : never;
 
   /**
    * Converts the binary representation to a JS object.

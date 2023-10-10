@@ -64,7 +64,10 @@ to the same object for as long as the GC hasn't collected it.
 
 #### Parameters
 
-*   `rfc6901` **PATH**&#x20;
+*   `rfc6901` **[string][20]** RFC6901-conformant JSON pointer
+*   `opts` **[object][24]** Options (optional, default `{}`)
+
+    *   `opts.throwOnError` **[boolean][21]** Throw on error when true, return undefined when false (optional, default `true`)
 
 Returns **any**&#x20;
 
@@ -89,7 +92,7 @@ to allow other tasks to run.
 Allows to convert only a small subtree out of a larger
 document.
 
-Returns **[Promise][24]\<any>**&#x20;
+Returns **[Promise][25]\<any>**&#x20;
 
 ### proxify
 
@@ -128,7 +131,7 @@ JSON parser.
 
 *   `text` **[string][20]** JSON to parse
 
-Returns **[Promise][24]<[JSON][1]>**&#x20;
+Returns **[Promise][25]<[JSON][1]>**&#x20;
 
 ### latency
 
@@ -214,4 +217,6 @@ Type: any
 
 [23]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array
 
-[24]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
+[24]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object
+
+[25]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise

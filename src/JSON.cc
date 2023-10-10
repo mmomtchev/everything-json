@@ -234,9 +234,16 @@ Value JSON::ToObject(Napi::Env env, const element &root) {
 Value JSON::Path(const CallbackInfo &info) {
   Napi::Env env(info.Env());
   auto instance = env.GetInstanceData<InstanceData>();
+  bool throwOnError = true;
 
-  if (info.Length() != 1 || !info[0].IsString()) {
-    throw TypeError::New(env, "JSON.path expects a single string");
+  if (info.Length() < 1 || !info[0].IsString()) {
+    throw TypeError::New(env, "No RFC6901 path given");
+  }
+  if (info.Length() > 1) {
+    if (!info[1].IsObject()) {
+      throw TypeError::New(env, "options must be an object");
+    }
+    throwOnError = info[1].As<Object>().Get("throwOnError").As<Boolean>().Value();
   }
 
   try {
@@ -247,7 +254,10 @@ Value JSON::Path(const CallbackInfo &info) {
     napi_value ctor_args = External<JSONElementContext>::New(env, &context);
     return New(instance, element, context.store_json.get(), &ctor_args);
   } catch (const exception &err) {
-    throw Error::New(env, err.what());
+    if (throwOnError)
+      throw Error::New(env, err.what());
+    else
+      return env.Undefined();
   }
 }
 

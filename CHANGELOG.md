@@ -4,6 +4,7 @@
 
  - Implement an object store keeping weak references to all objects returned to JavaScript and reusing them when possible
  - In TypeScript, return `JSON<any>` for `JSON.path()` when the string cannot be parsed by the type system instead of `never`
+ - Allow the suppression of the exception in `.path()`
 
 ### [0.9.4] 2023-10-09
 

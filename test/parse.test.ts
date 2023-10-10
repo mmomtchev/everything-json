@@ -35,6 +35,8 @@ describe('from string', () => {
     assert.throws(() => {
       document.path('/invalid');
     }, /NO_SUCH_FIELD: The JSON field/);
+
+    assert.isUndefined(document.path('/invalid', { throwOnError: false }));
   });
 
   it('type()', () => {
