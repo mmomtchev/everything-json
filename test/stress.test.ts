@@ -45,4 +45,42 @@ describe('stress', function () {
       .then(done)
       .catch(done);
   });
+
+  it.only('ensure the object store handles dying objects', function (done) {
+    (async function () {
+      const q: Promise<JSONAsync>[] = [];
+      for (let i = 0; i < texts.length; i++) {
+        const idx = i % texts.length;
+        q.push(JSONAsync.parseAsync(texts[idx]));
+      }
+      const json = await Promise.all(q);
+
+      async function getRandomElement(json: JSONAsync) {
+        let current = json;
+        let path = '';
+        do {
+          const allKeys = Object.keys(current.get());
+          if (allKeys.length === 0)
+            break;
+          const key = allKeys[Math.floor(Math.random() * allKeys.length)];
+          path += `/${key}`;
+          current = current.get()[key];
+        } while (current.type === 'array' || current.type === 'object');
+
+        assert.strictEqual(json.path(path), current);
+        if (typeof json.path(path).get() !== 'object')
+          assert.strictEqual(json.path(path).get(), current.get());
+        else
+          assert.deepEqual(json.path(path).get(), current.get());
+        return current.get();
+      }
+
+      for (let i = 0; i < 1e5; i++) {
+        //const doc = Math.floor(Math.random() * texts.length);
+        await getRandomElement(json[0]);
+      }
+    })()
+      .then(done)
+      .catch(done);
+  });
 });

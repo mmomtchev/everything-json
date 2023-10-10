@@ -1,9 +1,14 @@
 #include "jsonAsync.h"
+#include <sstream>
 
 JSONElementContext::JSONElementContext(const shared_ptr<padded_string> &_input_text, const shared_ptr<parser> &_parser_,
                                        const shared_ptr<element> &_document, const element &_root)
     : input_text(_input_text), parser_(_parser_), document(_document), store_json(make_shared<ObjectStore>()),
       store_get(make_shared<ObjectStore>()), store_expand(make_shared<ObjectStore>()), root(_root) {}
+
+JSONElementContext::JSONElementContext(const JSONElementContext &parent, const element &_root)
+    : input_text(parent.input_text), parser_(parent.parser_), document(parent.document), store_json(parent.store_json),
+      store_get(parent.store_get), store_expand(parent.store_expand), root(_root) {}
 
 JSONElementContext::JSONElementContext() {}
 
@@ -75,6 +80,13 @@ Value JSON::SIMDJSONVersionGetter(const CallbackInfo &info) {
   return String::New(env, SIMDJSON_VERSION);
 }
 
+Value JSON::ToStringGetter(const CallbackInfo &info) {
+  Napi::Env env(info.Env());
+  ostringstream type;
+  type << "JSON<" << root.type() << ">";
+  return String::New(env, type.str());
+}
+
 Value JSON::Parse(const CallbackInfo &info) {
   Napi::Env env(info.Env());
   auto instance = env.GetInstanceData<InstanceData>();
@@ -116,8 +128,11 @@ Value JSON::Get(Napi::Env env, bool expand) {
   ObjectStore *store = expand ? store_expand.get() : store_get.get();
   if (store->count(root)) {
     auto &ref = store->find(root)->second;
-    assert(!ref.IsEmpty());
-    return ref.Value();
+    if (!ref.IsEmpty() && !ref.Value().IsEmpty()) {
+      return ref.Value();
+    } else {
+      store->erase(root);
+    }
   }
 
   auto instance = env.GetInstanceData<InstanceData>();
@@ -235,10 +250,9 @@ Value JSON::Path(const CallbackInfo &info) {
     auto path = info[0].As<String>().Utf8Value();
     dom::element element = root.at_pointer(path);
 
-    JSONElementContext context(input_text, parser_, document, element);
+    JSONElementContext context(*this, element);
     napi_value ctor_args = External<JSONElementContext>::New(env, &context);
-    auto r = instance->JSON_ctor.Value().New(1, &ctor_args);
-    return r;
+    return New(instance, element, context.store_json.get(), &ctor_args);
   } catch (const exception &err) {
     throw Error::New(env, err.what());
   }

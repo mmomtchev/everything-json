@@ -42,6 +42,7 @@ struct JSONElementContext {
 
   JSONElementContext(const shared_ptr<padded_string> &, const shared_ptr<parser> &, const shared_ptr<element> &,
                      const element &);
+  JSONElementContext(const JSONElementContext &parent, const element &);
   JSONElementContext();
 };
 
@@ -103,7 +104,7 @@ public:
   Napi::Value Path(const CallbackInfo &);
   Napi::Value ToObject(const CallbackInfo &);
   Napi::Value ToObjectAsync(const CallbackInfo &);
-
+  Napi::Value ToStringGetter(const CallbackInfo &);
   Napi::Value TypeGetter(const CallbackInfo &);
   static Napi::Value LatencyGetter(const CallbackInfo &);
   static void LatencySetter(const CallbackInfo &, const Napi::Value &);
@@ -118,8 +119,11 @@ public:
 Napi::Value JSON::New(InstanceData *instance, const element &el, ObjectStore *store, const napi_value *context) {
   if (store->count(el)) {
     auto &ref = store->find(el)->second;
-    assert(!ref.IsEmpty());
-    return ref.Value();
+    if (!ref.IsEmpty() && !ref.Value().IsEmpty()) {
+      return ref.Value();
+    } else {
+      store->erase(el);
+    }
   }
 
   Napi::Value r;

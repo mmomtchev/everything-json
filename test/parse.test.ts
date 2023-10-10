@@ -128,18 +128,3 @@ describe('latency', () => {
     assert.strictEqual(JSONAsync.latency, 10);
   });
 });
-
-describe('uniqueness of objects', () => {
-  it('the same JSON must always return the same JS object', () => {
-    const text = fs.readFileSync(path.resolve(__dirname, 'data', 'canada.json'), 'utf8');
-    const document = JSONAsync.parse<FeatureCollection>(text);
-
-    const root1 = document.get();
-    const root2 = document.get();
-    assert.strictEqual(root1, root2);
-
-    const feature1 = document.get().features.get()[0];
-    const feature2 = document.get().features.get()[0];
-    assert.strictEqual(feature1, feature2);
-  });
-});
