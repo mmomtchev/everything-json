@@ -150,6 +150,8 @@ assert.strictEqual(root1, root2);
 
 Every time `.get()`/`expand()` returns an object, `everything-json` keep a weak reference that object and it will immediately return it on any subsequent calls - as long as the GC hasn't collected it. This permits for efficient long-term storage of JSON data structures in their binary representation, retrieving individual values as they are needed.
 
+`.toObject() / .toObjectAsync()` are excluded from this cache as it is expected that these methods will be used only once and they must be as fast as possible.
+
 # Current status
 
 Usable alpha version
