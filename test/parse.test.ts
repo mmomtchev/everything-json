@@ -87,6 +87,18 @@ describe('from string', () => {
       .catch(done);
   });
 
+  it('toObjectAsync() w/ empty object', function (done) {
+    // https://github.com/mmomtchev/everything-json/issues/15
+    JSONAsync.parseAsync(JSON.stringify({}))
+      .then((document) => document.toObjectAsync())
+      .then((object) => {
+        assert.isObject(object);
+        assert.isEmpty(object);
+        done();
+      })
+      .catch(done);
+  });
+
   it('parse() throws on invalid JSON', () => {
     assert.throws(() => {
       JSONAsync.parse('invalid JSON');
