@@ -191,6 +191,12 @@ Four tests:
 | async then 1 element | n/a | 242 | 227 | n/a | 5 |
 | async then JS object | n/a | 25 | 25 | n/a | 5 |
 
+# Is a browser WASM version feasible?
+
+Although possible, it won't match the performance of the native Node.js version and it is not planned at the moment.
+
+The solution would be to have a pre-spawned Web Worker that is going to run an eventual WASM port of `simdjson`. It will store its JSON tape in a `SharedArrayBuffer` which will be read by the main thread.
+
 # Copyright
 
 Copyright 2023 Momtchil Momtchev <momtchil@momtchev.com>
