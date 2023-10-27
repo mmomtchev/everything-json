@@ -173,7 +173,7 @@ Four tests:
 ![twitter.json](https://raw.githubusercontent.com/mmomtchev/everything-json/main/doc/bench-twitter.png)
 ![canada.json](https://raw.githubusercontent.com/mmomtchev/everything-json/main/doc/bench-canada.png)
 
-## `twitter.json` : deep JSON
+## `twitter.json` : JSON with lots of strings and a deep structure
 
 | / | Builtin `JSON.parse()` | `everything-json` from `Buffer` | `everything-json` from UTF8 string | `simdjson` | `yieldable-json` |
 | --- | --- | --- | --- | --- | --- |
