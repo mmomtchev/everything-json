@@ -171,8 +171,8 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
       empty:
         // Primitive values -> increment the parent iterator
         // and recurse up as many levels as needed
-        bool backtracked;
-        do {
+        bool backtracked = true;
+        while (backtracked && previous) {
           backtracked = false;
           switch (previous->item.type()) {
           case element_type::ARRAY: {
@@ -203,7 +203,7 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
           default:
             throw Error::New(env, "Internal error");
           }
-        } while (backtracked && previous);
+        }
       }
 
       // if previous == nullptr here, we have successfully
