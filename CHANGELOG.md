@@ -1,6 +1,6 @@
 # Changelog
 
-# [1.0.0]
+# [1.0.0] 2023-10-30
 
  - Implement an object store keeping weak references to all objects returned to JavaScript and reusing them when possible
  - In TypeScript, return `JSON<any>` for `JSON.path()` when the string cannot be parsed by the type system instead of `never`
