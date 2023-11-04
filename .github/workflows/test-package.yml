@@ -29,6 +29,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
       - name: Create package.json
         run: npm init --yes
       - name: Set up the unit tests
@@ -69,6 +72,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
       - name: Create package.json
         run: npm init --yes
       - name: Set up the unit tests
