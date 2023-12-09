@@ -55,7 +55,7 @@
     "c8": "^8.0.1",
     "chai": "^4.3.10",
     "documentation": "^14.0.2",
-    "eslint": "^8.52.0",
+    "eslint": "^8.54.0",
     "eslint-plugin-mocha": "^10.2.0",
     "mocha": "^10.2.0",
     "simdjson": "^0.9.2",
