@@ -45,7 +45,7 @@
     "require": "./lib/index.cjs"
   },
   "devDependencies": {
-    "@octokit/core": "^5.0.1",
+    "@octokit/core": "^5.0.2",
     "@types/chai": "^4.3.11",
     "@types/geojson": "^7946.0.13",
     "@types/mocha": "^10.0.6",
