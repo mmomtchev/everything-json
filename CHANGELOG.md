@@ -1,5 +1,9 @@
 # Changelog
 
+### [1.0.1]
+
+ - Fix [#70](https://github.com/mmomtchev/everything-json/issues/70), crash when using `.toObjectAsync()` from multiple `worker_thread`
+
 # [1.0.0] 2023-10-30
 
  - Implement an object store keeping weak references to all objects returned to JavaScript and reusing them when possible
