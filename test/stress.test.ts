@@ -1,11 +1,12 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { assert } from 'chai';
+import Piscina from 'piscina';
 
 import { JSON as JSONAsync } from 'everything-json';
 
 describe('stress', function () {
-  this.timeout(30000);
+  this.timeout(60000);
   const dir = path.resolve(__dirname, 'data');
   const files = fs.readdirSync(dir);
   const texts = files.filter((file) => file.match(/json$/)).map((file) => fs.readFileSync(path.resolve(dir, file), 'utf-8'));
@@ -81,5 +82,20 @@ describe('stress', function () {
     })()
       .then(done)
       .catch(done);
+  });
+
+  it('stress test in multiple worker_thread', (done) => {
+    const piscina = new Piscina({filename: path.resolve(__dirname, 'worker.mjs')});
+
+    const q: Promise<void>[] = [];
+    for (let i = 0; i < 4; i++) {
+      q.push(piscina.run(undefined).then((r: any[]) => {
+        for (let j = 0; j < texts.length * 2; j++) {
+          assert.deepEqual(r[j], expected[j % texts.length]);
+        }
+      }));
+    }
+
+    Promise.all(q).then(() => done()).catch(done);
   });
 });

@@ -1,6 +1,5 @@
 #include "jsonAsync.h"
 
-queue<shared_ptr<ToObjectAsync::Context>> runQueue;
 namespace ToObjectAsync {
 
 Element::Element(const element &_item) : item(_item), iterator({{}}) {}
@@ -22,15 +21,16 @@ inline bool JSON::CanRun(const high_resolution_clock::time_point &start) {
 void JSON::ProcessRunQueue(uv_async_t *handle) {
   const auto start(high_resolution_clock::now());
 
-  while (!runQueue.empty() && CanRun(start)) {
+  auto instance = static_cast<InstanceData *>(handle->data);
+  while (!instance->runQueue.empty() && CanRun(start)) {
     // An operation that has finished will have its state
     // deleted by args going out of scope
-    auto args = runQueue.front();
+    auto args = instance->runQueue.front();
     ToObjectAsync(args, start);
-    runQueue.pop();
+    instance->runQueue.pop();
   }
 
-  if (!runQueue.empty()) {
+  if (!instance->runQueue.empty()) {
     // More work, ask libuv to call us back after
     // one full event loop iteration
     uv_async_send(handle);
@@ -53,7 +53,7 @@ Value JSON::ToObjectAsync(const CallbackInfo &info) {
   return state->deferred.Promise();
 }
 
-#define LAST(v)   (&(v).end()[-1])
+#define LAST(v) (&(v).end()[-1])
 #define PENULT(v) (((v).size() > 1) ? (&(v).end()[-2]) : nullptr)
 
 // The actual implementation, called from the JS entry point
@@ -219,8 +219,8 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
     state->deferred.Resolve(state->top.Value());
   } else {
     // Put us back in the line
-    runQueue.push(state);
     auto instance = env.GetInstanceData<InstanceData>();
+    instance->runQueue.push(state);
     // Do not allow the Node.js process to exit, we are not finished
     uv_ref(reinterpret_cast<uv_handle_t *>(&instance->runQueueJob));
     // Ask libuv to call the micro task handler after one event loop iteration

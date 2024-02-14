@@ -38,7 +38,8 @@ Object Init(Napi::Env env, Object exports) {
   env.SetInstanceData(instance);
 
 #ifdef DEBUG
-  cerr << "everything-json environment initialization: " << instance << endl;
+  cerr << "everything-json environment initialization: " << instance << ":"
+       << std::this_thread::get_id() << endl;
 #endif
 
   uv_loop_t *loop;
