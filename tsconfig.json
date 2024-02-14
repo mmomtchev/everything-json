@@ -4,6 +4,7 @@
     "strict": true,
     "strictNullChecks": true,
     "target": "ES2015",
+    "esModuleInterop": true,
     "paths": {
       "everything-json": [
         "."

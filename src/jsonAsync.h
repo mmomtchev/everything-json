@@ -9,7 +9,7 @@
 #include <queue>
 #include <string>
 
-#define NAPI_VERSION 6
+#define NAPI_VERSION 8
 #include <napi.h>
 #include <uv.h>
 
@@ -18,11 +18,6 @@ using namespace simdjson;
 using namespace simdjson::dom;
 using namespace std;
 using namespace chrono;
-
-struct InstanceData {
-  FunctionReference JSON_ctor;
-  uv_async_t runQueueJob;
-};
 
 typedef map<element, ObjectReference> ObjectStore;
 
@@ -98,6 +93,11 @@ struct Context {
 
 }; // namespace ToObjectAsync
 
+struct InstanceData {
+  queue<shared_ptr<ToObjectAsync::Context>> runQueue;
+  FunctionReference JSON_ctor;
+  uv_async_t runQueueJob;
+};
 
 /**
  * The JavaScript proxy object for a JSON element in the binary parsed

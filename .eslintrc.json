@@ -37,13 +37,22 @@
         "@typescript-eslint"
       ],
       "rules": {
-        "@typescript-eslint/ban-ts-comment": "off"
+        "@typescript-eslint/ban-ts-comment": "off",
+        "@typescript-eslint/no-explicit-any": "off"
       },
       "extends": [
         "eslint:recommended",
         "plugin:@typescript-eslint/eslint-recommended",
         "plugin:@typescript-eslint/recommended"
       ]
+    },
+    {
+      "files": [
+        "*.mjs"
+      ],
+      "parserOptions": {
+        "sourceType": "module"
+      }
     }
   ]
 }

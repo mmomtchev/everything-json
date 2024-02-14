@@ -1,6 +1,7 @@
 {
   'variables': {
-    'enable_coverage%': 'false'
+    'enable_coverage%': 'false',
+    'enable_asan%': 'false'
   },
   'target_defaults': {
     'includes': [ 'except.gypi' ],
@@ -18,6 +19,10 @@
       ["enable_coverage == 'true'", {
         "cflags_cc": [ "-fprofile-arcs", "-ftest-coverage" ],
         "ldflags" : [ "-lgcov", "--coverage" ]
+      }],
+      ["enable_asan == 'true'", {
+        "cflags_cc": [ "-fsanitize=address" ],
+        "ldflags" : [ "-fsanitize=address" ]
       }]
     ]
   },
