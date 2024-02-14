@@ -9,7 +9,7 @@
 #include <queue>
 #include <string>
 
-#define NAPI_VERSION 6
+#define NAPI_VERSION 8
 #include <napi.h>
 #include <uv.h>
 
