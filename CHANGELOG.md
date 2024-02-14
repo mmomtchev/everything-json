@@ -1,8 +1,9 @@
 # Changelog
 
-### [1.0.1]
+### [1.0.1] 2024-02-14
 
  - Fix [#70](https://github.com/mmomtchev/everything-json/issues/70), crash when using `.toObjectAsync()` from multiple `worker_thread`
+ - Update `simdjson` to 3.6.4
 
 # [1.0.0] 2023-10-30
 
