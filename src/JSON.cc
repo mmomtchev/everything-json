@@ -149,7 +149,7 @@ Value JSON::Get(Napi::Env env, bool expand) {
         array.Set(i, sub);
         i++;
       }
-      store->emplace(root, move(Weak(array.As<Object>())));
+      store->emplace(root, Weak(array.As<Object>()));
       return array;
     }
     case element_type::OBJECT: {
@@ -167,7 +167,7 @@ Value JSON::Get(Napi::Env env, bool expand) {
           sub = GetPrimitive(env, child);
         object.Set(field.key.data(), sub);
       }
-      store->emplace(root, move(Weak(object)));
+      store->emplace(root, Weak(object));
       return object;
     }
     default:

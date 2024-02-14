@@ -153,7 +153,7 @@ Napi::Value JSON::New(InstanceData *instance, const element &el, ObjectStore *st
   TRY_RETURN_FROM_STORE(store, el);
   Napi::Value r;
   r = instance->JSON_ctor.Value().New(1, context);
-  store->emplace(el, move(Weak(r.As<Object>())));
+  store->emplace(el, Weak(r.As<Object>()));
   return r;
 }
 #endif
