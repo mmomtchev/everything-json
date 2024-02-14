@@ -54,7 +54,7 @@ Object Init(Napi::Env env, Object exports) {
           auto hook = static_cast<napi_async_cleanup_hook_handle>(handle->data);
           napi_status r = napi_remove_async_cleanup_hook(hook);
           if (r != napi_ok) {
-            printf("Failed to unload the environment\n");
+            cerr << "Failed to unload the environment" << endl;
 #ifdef DEBUG
             abort();
 #endif
