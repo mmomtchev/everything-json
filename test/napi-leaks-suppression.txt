@@ -25,3 +25,4 @@ leak:PagedSpace::RefillLabMain
 leak:OldLargeObjectSpace::AllocateRaw
 leak:BaselineBatchCompiler::EnqueueFunction
 leak:Compiler::FinalizeTurbofanCompilationJob
+leak:v8::internal::Factory::CodeBuilder::Build
