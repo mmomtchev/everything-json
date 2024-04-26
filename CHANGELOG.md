@@ -3,6 +3,7 @@
 ### [1.1.0] 2024-04-26
 
  - Pre-built binaries for macOS 14 / ARM64
+ - Update `simdjson` to 3.9.1
 
 ### [1.0.1] 2024-02-14
 
