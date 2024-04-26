@@ -1,5 +1,9 @@
 # Changelog
 
+### [1.1.0] 2024-04-26
+
+ - Pre-built binaries for macOS 14 / ARM64
+
 ### [1.0.1] 2024-02-14
 
  - Fix [#70](https://github.com/mmomtchev/everything-json/issues/70), crash when using `.toObjectAsync()` from multiple `worker_thread`
