@@ -57,7 +57,7 @@
     "documentation": "^14.0.2",
     "eslint": "^8.56.0",
     "eslint-plugin-mocha": "^10.2.0",
-    "mocha": "^10.2.0",
+    "mocha": "github:mmomtchev/mocha#mmom",
     "piscina": "^4.3.1",
     "simdjson": "^0.9.2",
     "ts-node": "^10.9.2",
