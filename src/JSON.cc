@@ -28,15 +28,9 @@ JSON::JSON(const CallbackInfo &info) : ObjectWrap<JSON>(info), external_memory(0
   store_json = context->store_json;
   store_get = context->store_get;
   store_expand = context->store_expand;
-  // This overreports memory to the GC
-  external_memory = input_text->length() * 2;
-  Napi::MemoryManagement::AdjustExternalMemory(env, external_memory);
 }
 
-JSON::~JSON() {
-  Napi::MemoryManagement::AdjustExternalMemory(Env(), -external_memory);
-  external_memory = 0;
-}
+JSON::~JSON() {}
 
 shared_ptr<padded_string> JSON::GetString(const CallbackInfo &info) {
   Napi::Env env(info.Env());
@@ -100,7 +94,13 @@ Value JSON::Parse(const CallbackInfo &info) {
   try {
     auto parser_ = make_shared<parser>();
     auto json = GetString(info);
-    auto document = make_shared<element>(parser_->parse(*json));
+    // This overreports memory to the GC
+    uint64_t external_memory = json->length() * 2;
+    Napi::MemoryManagement::AdjustExternalMemory(env, external_memory);
+    auto document = shared_ptr<element>(new element(parser_->parse(*json)), [env, external_memory](void *p) {
+      Napi::MemoryManagement::AdjustExternalMemory(env, -external_memory);
+      delete static_cast<element *>(p);
+    });
 
     element root = *document.get();
     JSONElementContext context(json, parser_, document, root);
