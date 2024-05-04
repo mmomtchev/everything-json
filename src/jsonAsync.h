@@ -136,6 +136,9 @@ public:
   static void ProcessRunQueue(uv_async_t *);
 
   static Function GetClass(Napi::Env env);
+
+private:
+  int64_t external_memory;
 };
 
 #define TRY_RETURN_FROM_STORE(store, el)                                                                               \

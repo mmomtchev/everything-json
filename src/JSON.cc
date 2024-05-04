@@ -12,7 +12,7 @@ JSONElementContext::JSONElementContext(const JSONElementContext &parent, const e
 
 JSONElementContext::JSONElementContext() {}
 
-JSON::JSON(const CallbackInfo &info) : ObjectWrap<JSON>(info) {
+JSON::JSON(const CallbackInfo &info) : ObjectWrap<JSON>(info), external_memory(0) {
   Napi::Env env(info.Env());
 
   if (info.Length() != 1 || !info[0].IsExternal()) {
@@ -28,9 +28,15 @@ JSON::JSON(const CallbackInfo &info) : ObjectWrap<JSON>(info) {
   store_json = context->store_json;
   store_get = context->store_get;
   store_expand = context->store_expand;
+  // This overreports memory to the GC
+  external_memory = input_text->length() * 2;
+  Napi::MemoryManagement::AdjustExternalMemory(env, external_memory);
 }
 
-JSON::~JSON() {}
+JSON::~JSON() {
+  Napi::MemoryManagement::AdjustExternalMemory(Env(), -external_memory);
+  external_memory = 0;
+}
 
 shared_ptr<padded_string> JSON::GetString(const CallbackInfo &info) {
   Napi::Env env(info.Env());

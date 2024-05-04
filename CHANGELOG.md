@@ -1,6 +1,10 @@
 # Changelog
 
-### [1.1.0] 2024-04-26
+## [1.2.0]
+
+ - Implement a solution to [#110](https://github.com/mmomtchev/everything-json/issues/110), report allocated memory to the GC
+
+## [1.1.0] 2024-04-26
 
  - Pre-built binaries for macOS 14 / ARM64
  - Update `simdjson` to 3.9.1
