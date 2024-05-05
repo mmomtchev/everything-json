@@ -26,7 +26,7 @@ Object Init(Napi::Env env, Object exports) {
   Function JSON_ctor = JSON::GetClass(env);
   exports.Set("JSON", JSON_ctor);
 
-  auto instance = new InstanceData{env};
+  auto instance = new InstanceData;
   instance->pendingExternalMemoryAdjustment = 0;
   instance->JSON_ctor = Persistent(JSON_ctor);
   env.SetInstanceData(instance);

@@ -95,13 +95,11 @@ struct Context {
 }; // namespace ToObjectAsync
 
 struct InstanceData {
-  Napi::Env env;
   queue<std::shared_ptr<ToObjectAsync::Context>> runQueue;
   FunctionReference JSON_ctor;
   uv_async_t runQueueJob;
   std::mutex lock;
   int64_t pendingExternalMemoryAdjustment;
-  InstanceData(Napi::Env _env): env(_env) {}
 };
 
 namespace Napi {
@@ -113,8 +111,9 @@ namespace Napi {
 
 template <typename T, typename... ARGS>
 inline std::shared_ptr<T> MakeTracking(Env env, int64_t extra_size, ARGS &&...args) {
-  MemoryManagement::AdjustExternalMemory(env, extra_size + sizeof(T));
   auto instance = env.GetInstanceData<InstanceData>();
+  std::lock_guard{instance->lock};
+  instance->pendingExternalMemoryAdjustment += extra_size + sizeof(T);
   return std::shared_ptr<T>{new T(std::forward<ARGS>(args)...), [instance, extra_size](void *p) {
                               std::lock_guard{instance->lock};
                               instance->pendingExternalMemoryAdjustment -= extra_size + sizeof(T);
@@ -122,8 +121,9 @@ inline std::shared_ptr<T> MakeTracking(Env env, int64_t extra_size, ARGS &&...ar
                             }};
 }
 template <typename T> inline std::shared_ptr<T> MakeTracking(Env env) {
-  MemoryManagement::AdjustExternalMemory(env, sizeof(T));
   auto instance = env.GetInstanceData<InstanceData>();
+  std::lock_guard{instance->lock};
+  instance->pendingExternalMemoryAdjustment += sizeof(T);
   return std::shared_ptr<T>{new T, [instance](void *p) {
                               std::lock_guard{instance->lock};
                               instance->pendingExternalMemoryAdjustment -= sizeof(T);
@@ -167,12 +167,18 @@ public:
   static Napi::Value SIMDJSONVersionGetter(const CallbackInfo &);
 
   static void ProcessRunQueue(uv_async_t *);
+  static void ProcessExternalMemory(Napi::Env env);
 
   static Function GetClass(Napi::Env env);
-
-private:
-  int64_t external_memory;
 };
+
+inline bool JSON::CanRun(const high_resolution_clock::time_point &start) {
+#ifdef DEBUG_VERBOSE
+  return true;
+#else
+  return duration_cast<milliseconds>(high_resolution_clock::now() - start).count() < latency;
+#endif
+}
 
 #define TRY_RETURN_FROM_STORE(store, el)                                                                               \
   if ((store)->count(el)) {                                                                                            \

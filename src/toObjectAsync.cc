@@ -8,44 +8,6 @@ Context::Context(Napi::Env _env, Napi::Value _self)
 
 } // namespace ToObjectAsync
 
-inline bool JSON::CanRun(const high_resolution_clock::time_point &start) {
-#ifdef DEBUG_VERBOSE
-  return true;
-#else
-  return duration_cast<milliseconds>(high_resolution_clock::now() - start).count() < latency;
-#endif
-}
-
-// Process the micro task queue
-// (this is a process.nextTick re-implemented in C++)
-void JSON::ProcessRunQueue(uv_async_t *handle) {
-  const auto start(high_resolution_clock::now());
-
-  auto instance = static_cast<InstanceData *>(handle->data);
-  while (!instance->runQueue.empty() && CanRun(start)) {
-    // An operation that has finished will have its state
-    // deleted by args going out of scope
-    auto args = instance->runQueue.front();
-    ToObjectAsync(args, start);
-    instance->runQueue.pop();
-  }
-
-  if (!instance->runQueue.empty()) {
-    // More work, ask libuv to call us back after
-    // one full event loop iteration
-    uv_async_send(handle);
-  } else {
-    // No more work, do not block the process exit
-    uv_unref(reinterpret_cast<uv_handle_t *>(handle));
-  }
-
-  std::lock_guard{instance->lock};
-  if (instance->pendingExternalMemoryAdjustment != 0) {
-    Napi::MemoryManagement::AdjustExternalMemory(instance->env, instance->pendingExternalMemoryAdjustment);
-    instance->pendingExternalMemoryAdjustment = 0;
-  }
-}
-
 // Main JS entry point
 Value JSON::ToObjectAsync(const CallbackInfo &info) {
   Napi::Env env(info.Env());
