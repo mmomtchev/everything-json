@@ -8,9 +8,9 @@
 #include <map>
 #include <queue>
 #include <string>
+#include <mutex>
 
 #define NAPI_VERSION 8
-#include "trackingPtr.h"
 #include <napi.h>
 #include <uv.h>
 
@@ -95,10 +95,42 @@ struct Context {
 }; // namespace ToObjectAsync
 
 struct InstanceData {
+  Napi::Env env;
   queue<std::shared_ptr<ToObjectAsync::Context>> runQueue;
   FunctionReference JSON_ctor;
   uv_async_t runQueueJob;
+  std::mutex lock;
+  int64_t pendingExternalMemoryAdjustment;
+  InstanceData(Napi::Env _env): env(_env) {}
 };
+
+namespace Napi {
+
+/**
+ * An std::make_shared derivative that can track memory
+ * through the V8 GC
+ */
+
+template <typename T, typename... ARGS>
+inline std::shared_ptr<T> MakeTracking(Env env, int64_t extra_size, ARGS &&...args) {
+  MemoryManagement::AdjustExternalMemory(env, extra_size + sizeof(T));
+  auto instance = env.GetInstanceData<InstanceData>();
+  return std::shared_ptr<T>{new T(std::forward<ARGS>(args)...), [instance, extra_size](void *p) {
+                              std::lock_guard{instance->lock};
+                              instance->pendingExternalMemoryAdjustment -= extra_size + sizeof(T);
+                              delete static_cast<T *>(p);
+                            }};
+}
+template <typename T> inline std::shared_ptr<T> MakeTracking(Env env) {
+  MemoryManagement::AdjustExternalMemory(env, sizeof(T));
+  auto instance = env.GetInstanceData<InstanceData>();
+  return std::shared_ptr<T>{new T, [instance](void *p) {
+                              std::lock_guard{instance->lock};
+                              instance->pendingExternalMemoryAdjustment -= sizeof(T);
+                              delete static_cast<T *>(p);
+                            }};
+}
+} // namespace Napi
 
 /**
  * The JavaScript proxy object for a JSON element in the binary parsed

@@ -38,6 +38,12 @@ void JSON::ProcessRunQueue(uv_async_t *handle) {
     // No more work, do not block the process exit
     uv_unref(reinterpret_cast<uv_handle_t *>(handle));
   }
+
+  std::lock_guard{instance->lock};
+  if (instance->pendingExternalMemoryAdjustment != 0) {
+    Napi::MemoryManagement::AdjustExternalMemory(instance->env, instance->pendingExternalMemoryAdjustment);
+    instance->pendingExternalMemoryAdjustment = 0;
+  }
 }
 
 // Main JS entry point
