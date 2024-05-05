@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.2.0]
+## [1.2.0] 2024-05-05
 
  - Implement a solution to [#110](https://github.com/mmomtchev/everything-json/issues/110), report allocated memory to the GC
     This important improvement can greatly reduce the memory requirements of applications the make heavy use of `everything-json`, in particular when using with Next.js during `next build` with lots of static pages
