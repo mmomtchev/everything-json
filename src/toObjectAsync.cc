@@ -58,9 +58,9 @@ Value JSON::ToObjectAsync(const CallbackInfo &info) {
 
 // The actual implementation, called from the JS entry point
 // and the task queue loop, runs until it is allowed, keeps its
-// context in Napi::TrackingPtr<ToObjectAsync::Context> state
+// context in std::shared_ptr<ToObjectAsync::Context> state
 // (this is an iterative heterogenous tree traversal)
-void JSON::ToObjectAsync(Napi::TrackingPtr<ToObjectAsync::Context> state, high_resolution_clock::time_point start) {
+void JSON::ToObjectAsync(std::shared_ptr<ToObjectAsync::Context> state, high_resolution_clock::time_point start) {
   Napi::Env env = state->env;
   auto &stack = state->stack;
 

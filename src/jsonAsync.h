@@ -34,20 +34,20 @@ typedef map<element, ObjectReference> ObjectStore;
  */
 struct JSONElementContext {
   // The input string
-  Napi::TrackingPtr<padded_string> input_text;
+  std::shared_ptr<padded_string> input_text;
 
   // The containing document
-  Napi::TrackingPtr<parser> parser_;
-  Napi::TrackingPtr<element> document;
+  std::shared_ptr<parser> parser_;
+  std::shared_ptr<element> document;
 
   // The object store - contains weak refs to objects returned to JS
-  Napi::TrackingPtr<ObjectStore> store_json, store_get, store_expand;
+  std::shared_ptr<ObjectStore> store_json, store_get, store_expand;
 
   // The root of this subvalue
   element root;
 
-  JSONElementContext(Napi::Env env, const Napi::TrackingPtr<padded_string> &, const Napi::TrackingPtr<parser> &,
-                     const Napi::TrackingPtr<element> &, const element &);
+  JSONElementContext(Napi::Env env, const std::shared_ptr<padded_string> &, const std::shared_ptr<parser> &,
+                     const std::shared_ptr<element> &, const element &);
   JSONElementContext(const JSONElementContext &parent, const element &);
   JSONElementContext();
 };
@@ -95,7 +95,7 @@ struct Context {
 }; // namespace ToObjectAsync
 
 struct InstanceData {
-  queue<Napi::TrackingPtr<ToObjectAsync::Context>> runQueue;
+  queue<std::shared_ptr<ToObjectAsync::Context>> runQueue;
   FunctionReference JSON_ctor;
   uv_async_t runQueueJob;
 };
@@ -110,8 +110,8 @@ class JSON : public ObjectWrap<JSON>, JSONElementContext {
   static inline Napi::Value New(InstanceData *, const element &, ObjectStore *store, const napi_value *);
 
   static Napi::Value ToObject(Napi::Env, const element &);
-  static void ToObjectAsync(Napi::TrackingPtr<ToObjectAsync::Context>, high_resolution_clock::time_point);
-  static Napi::TrackingPtr<padded_string> GetString(const CallbackInfo &);
+  static void ToObjectAsync(std::shared_ptr<ToObjectAsync::Context>, high_resolution_clock::time_point);
+  static std::shared_ptr<padded_string> GetString(const CallbackInfo &);
   static inline bool CanRun(const high_resolution_clock::time_point &);
   static inline Napi::Value GetPrimitive(Napi::Env, const element &);
   Napi::Value Get(Napi::Env, bool);

@@ -1,9 +1,9 @@
 #include "jsonAsync.h"
 #include <sstream>
 
-JSONElementContext::JSONElementContext(Napi::Env env, const Napi::TrackingPtr<padded_string> &_input_text,
-                                       const Napi::TrackingPtr<parser> &_parser_,
-                                       const Napi::TrackingPtr<element> &_document, const element &_root)
+JSONElementContext::JSONElementContext(Napi::Env env, const std::shared_ptr<padded_string> &_input_text,
+                                       const std::shared_ptr<parser> &_parser_,
+                                       const std::shared_ptr<element> &_document, const element &_root)
     : input_text(_input_text), parser_(_parser_), document(_document), store_json(Napi::MakeTracking<ObjectStore>(env)),
       store_get(Napi::MakeTracking<ObjectStore>(env)), store_expand(Napi::MakeTracking<ObjectStore>(env)), root(_root) {
 }
@@ -34,7 +34,7 @@ JSON::JSON(const CallbackInfo &info) : ObjectWrap<JSON>(info), external_memory(0
 
 JSON::~JSON() {}
 
-Napi::TrackingPtr<padded_string> JSON::GetString(const CallbackInfo &info) {
+std::shared_ptr<padded_string> JSON::GetString(const CallbackInfo &info) {
   Napi::Env env(info.Env());
 
   if (info.Length() != 1 || (!info[0].IsString() && !info[0].IsBuffer())) {

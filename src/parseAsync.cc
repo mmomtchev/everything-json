@@ -3,12 +3,12 @@
 Value JSON::ParseAsync(const CallbackInfo &info) {
   class ParserAsyncWorker : public AsyncWorker {
     Promise::Deferred deferred;
-    Napi::TrackingPtr<padded_string> json_text;
-    Napi::TrackingPtr<parser> parser_;
-    Napi::TrackingPtr<element> document;
+    std::shared_ptr<padded_string> json_text;
+    std::shared_ptr<parser> parser_;
+    std::shared_ptr<element> document;
 
   public:
-    ParserAsyncWorker(Napi::Env env, Napi::TrackingPtr<padded_string> text)
+    ParserAsyncWorker(Napi::Env env, std::shared_ptr<padded_string> text)
         : AsyncWorker(env, "JSONAsyncWorker"), deferred(env), json_text(text) {}
     virtual void Execute() override {
       napi_env env = Env();
