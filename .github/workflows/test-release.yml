@@ -30,3 +30,40 @@ jobs:
         run: npx @mapbox/node-pre-gyp install
       - name: Run unit tests
         run: npm test
+
+  
+  pack:
+    runs-on: ubuntu-latest
+    outputs:
+      package: ${{ steps.pack.outputs.package }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: true
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Pack
+        id: pack
+        run: |
+          npm pack
+          echo package=`echo everything-json-*.tgz` >> $GITHUB_OUTPUT
+      - name: Upload tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.pack.outputs.package }}
+          path: ${{ steps.pack.outputs.package }}
+
+
+  test_package:
+    uses: mmomtchev/everything-json/.github/workflows/test-package.yml@main
+    needs: pack
+    with:
+      package: ${{ needs.pack.outputs.package }}
+      download: true

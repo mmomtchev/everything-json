@@ -1,11 +1,22 @@
 name: Test npm package
 
 on:
+  workflow_call:
+    inputs:
+      package:
+        type: string
+        default: everything-json@latest
+        description: package tarball or npm name to install
+      download:
+        type: boolean
+        default: false
+        description: whether the package artifact needs to be downloaded
   workflow_dispatch:
     inputs:
-      version:
-        description: "Package version to test"
-        required: true
+      package:
+        type: string
+        default: everything-json@latest
+        description: package tarball or npm name to install
 
 
 jobs:
@@ -34,6 +45,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.11
+      - name: Download the package
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.package }}
+        if: inputs.download
       - name: Create package.json
         run: npm init --yes
       - name: Set up the unit tests
@@ -45,7 +61,7 @@ jobs:
         run: |
           npm i chai@4.4.1 chai-spies chai-as-promised mocha typescript ts-node tsconfig-paths @types/chai@4.3.11 @types/chai-as-promised @types/mocha @types/node @types/geojson piscina
       - name: Install everything-json from npm
-        run: npm install --force everything-json@${{ github.event.inputs.version }}
+        run: npm install ${{ inputs.package }}
         shell: bash
       - name: Run the unit tests
         run: |
@@ -79,6 +95,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.11
+      - name: Download the package
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.package }}
+        if: inputs.download
       - name: Create package.json
         run: npm init --yes
       - name: Set up the unit tests
@@ -92,7 +113,7 @@ jobs:
       - name: Install everything-json from npm
         run: |
           [[ '${{ matrix.platform }}' =~ 'windows' ]] && subst M: `pwd` && cd M:/
-          npm install --force everything-json@${{ github.event.inputs.version }} --build-from-source
+          npm install ${{ inputs.package }} --build-from-source
         shell: bash
       - name: Run the unit tests
         run: |
