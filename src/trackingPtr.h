@@ -1,5 +1,7 @@
 #pragma once
 
+#include <napi.h>
+
 namespace Napi {
 /**
  * An std::shared_ptr derivative that can track memory
