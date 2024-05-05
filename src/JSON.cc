@@ -1,10 +1,12 @@
 #include "jsonAsync.h"
 #include <sstream>
 
-JSONElementContext::JSONElementContext(const shared_ptr<padded_string> &_input_text, const shared_ptr<parser> &_parser_,
-                                       const shared_ptr<element> &_document, const element &_root)
-    : input_text(_input_text), parser_(_parser_), document(_document), store_json(make_shared<ObjectStore>()),
-      store_get(make_shared<ObjectStore>()), store_expand(make_shared<ObjectStore>()), root(_root) {}
+JSONElementContext::JSONElementContext(Napi::Env env, const std::shared_ptr<padded_string> &_input_text,
+                                       const std::shared_ptr<parser> &_parser_,
+                                       const std::shared_ptr<element> &_document, const element &_root)
+    : input_text(_input_text), parser_(_parser_), document(_document), store_json(Napi::MakeTracking<ObjectStore>(env)),
+      store_get(Napi::MakeTracking<ObjectStore>(env)), store_expand(Napi::MakeTracking<ObjectStore>(env)), root(_root) {
+}
 
 JSONElementContext::JSONElementContext(const JSONElementContext &parent, const element &_root)
     : input_text(parent.input_text), parser_(parent.parser_), document(parent.document), store_json(parent.store_json),
@@ -28,28 +30,29 @@ JSON::JSON(const CallbackInfo &info) : ObjectWrap<JSON>(info) {
   store_json = context->store_json;
   store_get = context->store_get;
   store_expand = context->store_expand;
+  ProcessExternalMemory(env);
 }
 
-JSON::~JSON() {}
+JSON::~JSON() { ProcessExternalMemory(Env()); }
 
-shared_ptr<padded_string> JSON::GetString(const CallbackInfo &info) {
+std::shared_ptr<padded_string> JSON::GetString(const CallbackInfo &info) {
   Napi::Env env(info.Env());
 
   if (info.Length() != 1 || (!info[0].IsString() && !info[0].IsBuffer())) {
     throw TypeError::New(env, "JSON.parse{Async} expects a single string or Buffer argument");
   }
 
-  auto parser_ = make_shared<parser>();
+  auto parser_ = Napi::MakeTracking<parser>(env);
 
   size_t json_len;
   if (info[0].IsString()) {
     napi_get_value_string_utf8(env, info[0], nullptr, 0, &json_len);
-    auto json = make_shared<padded_string>(json_len);
+    auto json = Napi::MakeTracking<padded_string>(env, json_len, json_len);
     napi_get_value_string_utf8(env, info[0], json->data(), json_len + 1, nullptr);
     return json;
   } else if (info[0].IsBuffer()) {
     auto buffer = info[0].As<Buffer<char>>();
-    auto json = make_shared<padded_string>(buffer.Data() + buffer.ByteOffset(), buffer.ByteLength());
+    auto json = Napi::MakeTracking<padded_string>(env, 0, buffer.Data() + buffer.ByteOffset(), buffer.ByteLength());
     return json;
   }
 
@@ -92,12 +95,13 @@ Value JSON::Parse(const CallbackInfo &info) {
   auto instance = env.GetInstanceData<InstanceData>();
 
   try {
-    auto parser_ = make_shared<parser>();
+    auto parser_ = Napi::MakeTracking<parser>(env);
     auto json = GetString(info);
-    auto document = make_shared<element>(parser_->parse(*json));
+    // This needs https://github.com/simdjson/simdjson/issues/1017 for optimal solution
+    auto document = Napi::MakeTracking<element>(env, json->length() * 2, parser_->parse(*json));
 
     element root = *document.get();
-    JSONElementContext context(json, parser_, document, root);
+    JSONElementContext context(env, json, parser_, document, root);
     napi_value ctor_args = External<JSONElementContext>::New(env, &context);
     return New(instance, root, context.store_json.get(), &ctor_args);
   } catch (const exception &err) {

@@ -8,6 +8,7 @@
 #include <map>
 #include <queue>
 #include <string>
+#include <mutex>
 
 #define NAPI_VERSION 8
 #include <napi.h>
@@ -28,25 +29,25 @@ typedef map<element, ObjectReference> ObjectStore;
  * All JSON elements in the same document share the same pointers
  * to the input text, the parser and the main root element (the document root).
  * They also share the same object stores.
- * 
+ *
  * root is the root of the element.
  */
 struct JSONElementContext {
   // The input string
-  shared_ptr<padded_string> input_text;
+  std::shared_ptr<padded_string> input_text;
 
   // The containing document
-  shared_ptr<parser> parser_;
-  shared_ptr<element> document;
+  std::shared_ptr<parser> parser_;
+  std::shared_ptr<element> document;
 
   // The object store - contains weak refs to objects returned to JS
-  shared_ptr<ObjectStore> store_json, store_get, store_expand;
+  std::shared_ptr<ObjectStore> store_json, store_get, store_expand;
 
   // The root of this subvalue
   element root;
 
-  JSONElementContext(const shared_ptr<padded_string> &, const shared_ptr<parser> &, const shared_ptr<element> &,
-                     const element &);
+  JSONElementContext(Napi::Env env, const std::shared_ptr<padded_string> &, const std::shared_ptr<parser> &,
+                     const std::shared_ptr<element> &, const element &);
   JSONElementContext(const JSONElementContext &parent, const element &);
   JSONElementContext();
 };
@@ -94,10 +95,42 @@ struct Context {
 }; // namespace ToObjectAsync
 
 struct InstanceData {
-  queue<shared_ptr<ToObjectAsync::Context>> runQueue;
+  queue<std::shared_ptr<ToObjectAsync::Context>> runQueue;
   FunctionReference JSON_ctor;
   uv_async_t runQueueJob;
+  std::mutex lock;
+  int64_t pendingExternalMemoryAdjustment;
 };
+
+namespace Napi {
+
+/**
+ * An std::make_shared derivative that can track memory
+ * through the V8 GC
+ */
+
+template <typename T, typename... ARGS>
+inline std::shared_ptr<T> MakeTracking(Env env, int64_t extra_size, ARGS &&...args) {
+  auto instance = env.GetInstanceData<InstanceData>();
+  std::lock_guard{instance->lock};
+  instance->pendingExternalMemoryAdjustment += extra_size + sizeof(T);
+  return std::shared_ptr<T>{new T(std::forward<ARGS>(args)...), [instance, extra_size](void *p) {
+                              std::lock_guard{instance->lock};
+                              instance->pendingExternalMemoryAdjustment -= extra_size + sizeof(T);
+                              delete static_cast<T *>(p);
+                            }};
+}
+template <typename T> inline std::shared_ptr<T> MakeTracking(Env env) {
+  auto instance = env.GetInstanceData<InstanceData>();
+  std::lock_guard{instance->lock};
+  instance->pendingExternalMemoryAdjustment += sizeof(T);
+  return std::shared_ptr<T>{new T, [instance](void *p) {
+                              std::lock_guard{instance->lock};
+                              instance->pendingExternalMemoryAdjustment -= sizeof(T);
+                              delete static_cast<T *>(p);
+                            }};
+}
+} // namespace Napi
 
 /**
  * The JavaScript proxy object for a JSON element in the binary parsed
@@ -109,8 +142,8 @@ class JSON : public ObjectWrap<JSON>, JSONElementContext {
   static inline Napi::Value New(InstanceData *, const element &, ObjectStore *store, const napi_value *);
 
   static Napi::Value ToObject(Napi::Env, const element &);
-  static void ToObjectAsync(shared_ptr<ToObjectAsync::Context>, high_resolution_clock::time_point);
-  static shared_ptr<padded_string> GetString(const CallbackInfo &);
+  static void ToObjectAsync(std::shared_ptr<ToObjectAsync::Context>, high_resolution_clock::time_point);
+  static std::shared_ptr<padded_string> GetString(const CallbackInfo &);
   static inline bool CanRun(const high_resolution_clock::time_point &);
   static inline Napi::Value GetPrimitive(Napi::Env, const element &);
   Napi::Value Get(Napi::Env, bool);
@@ -134,14 +167,23 @@ public:
   static Napi::Value SIMDJSONVersionGetter(const CallbackInfo &);
 
   static void ProcessRunQueue(uv_async_t *);
+  static void ProcessExternalMemory(Napi::Env env);
 
   static Function GetClass(Napi::Env env);
 };
 
+inline bool JSON::CanRun(const high_resolution_clock::time_point &start) {
+#ifdef DEBUG_VERBOSE
+  return true;
+#else
+  return duration_cast<milliseconds>(high_resolution_clock::now() - start).count() < latency;
+#endif
+}
+
 #define TRY_RETURN_FROM_STORE(store, el)                                                                               \
   if ((store)->count(el)) {                                                                                            \
     assert((store)->count(el) == 1);                                                                                   \
-    auto &ref = (store) -> find(el) -> second;                                                                         \
+    auto &ref = (store)->find(el)->second;                                                                             \
     if (!ref.IsEmpty() && !ref.Value().IsEmpty()) {                                                                    \
       return ref.Value();                                                                                              \
     } else {                                                                                                           \

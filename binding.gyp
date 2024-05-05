@@ -33,6 +33,7 @@
         'deps/simdjson.cpp',
         'src/main.cc',
         'src/JSON.cc',
+        'src/queue.cc',
         'src/parseAsync.cc',
         'src/toObjectAsync.cc'
       ],

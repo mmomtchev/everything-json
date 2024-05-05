@@ -8,45 +8,13 @@ Context::Context(Napi::Env _env, Napi::Value _self)
 
 } // namespace ToObjectAsync
 
-inline bool JSON::CanRun(const high_resolution_clock::time_point &start) {
-#ifdef DEBUG_VERBOSE
-  return true;
-#else
-  return duration_cast<milliseconds>(high_resolution_clock::now() - start).count() < latency;
-#endif
-}
-
-// Process the micro task queue
-// (this is a process.nextTick re-implemented in C++)
-void JSON::ProcessRunQueue(uv_async_t *handle) {
-  const auto start(high_resolution_clock::now());
-
-  auto instance = static_cast<InstanceData *>(handle->data);
-  while (!instance->runQueue.empty() && CanRun(start)) {
-    // An operation that has finished will have its state
-    // deleted by args going out of scope
-    auto args = instance->runQueue.front();
-    ToObjectAsync(args, start);
-    instance->runQueue.pop();
-  }
-
-  if (!instance->runQueue.empty()) {
-    // More work, ask libuv to call us back after
-    // one full event loop iteration
-    uv_async_send(handle);
-  } else {
-    // No more work, do not block the process exit
-    uv_unref(reinterpret_cast<uv_handle_t *>(handle));
-  }
-}
-
 // Main JS entry point
 Value JSON::ToObjectAsync(const CallbackInfo &info) {
   Napi::Env env(info.Env());
 
   // The ToObjectAsync state is created here and it exists
   // as long as it sits on the queue
-  auto state = make_shared<ToObjectAsync::Context>(env, info.This());
+  auto state = Napi::MakeTracking<ToObjectAsync::Context>(env, 0, env, info.This());
   state->stack.emplace_back(root);
   ToObjectAsync(state, high_resolution_clock::now());
 
@@ -58,9 +26,9 @@ Value JSON::ToObjectAsync(const CallbackInfo &info) {
 
 // The actual implementation, called from the JS entry point
 // and the task queue loop, runs until it is allowed, keeps its
-// context in shared_ptr<ToObjectAsync::Context> state
+// context in std::shared_ptr<ToObjectAsync::Context> state
 // (this is an iterative heterogenous tree traversal)
-void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resolution_clock::time_point start) {
+void JSON::ToObjectAsync(std::shared_ptr<ToObjectAsync::Context> state, high_resolution_clock::time_point start) {
   Napi::Env env = state->env;
   auto &stack = state->stack;
 
@@ -120,9 +88,8 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
           Array array = previous->ref.Value().As<Array>();
           array.Set(previous->idx, result);
 #ifdef DEBUG_VERBOSE
-          printf("%.*s [%u] = %s\n",
-            (int)stack.size(), "                       ",
-            (unsigned)previous->idx, result.As<String>().Utf8Value().c_str());
+          printf("%.*s [%u] = %s\n", (int)stack.size(), "                       ", (unsigned)previous->idx,
+                 result.As<String>().Utf8Value().c_str());
 #endif
           break;
         }
@@ -131,9 +98,8 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
           auto key = (*previous->iterator.object.idx).key.data();
           object.Set(key, result);
 #ifdef DEBUG_VERBOSE
-          printf("%.*s {%s} = %s\n",
-            (int)stack.size(), "                       ",
-            key, result.As<String>().Utf8Value().c_str());
+          printf("%.*s {%s} = %s\n", (int)stack.size(), "                       ", key,
+                 result.As<String>().Utf8Value().c_str());
 #endif
           break;
         }
