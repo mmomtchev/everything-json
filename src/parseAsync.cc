@@ -3,32 +3,24 @@
 Value JSON::ParseAsync(const CallbackInfo &info) {
   class ParserAsyncWorker : public AsyncWorker {
     Promise::Deferred deferred;
-    shared_ptr<padded_string> json_text;
-    shared_ptr<parser> parser_;
-    shared_ptr<element> document;
-    uint64_t external_memory;
+    Napi::TrackingPtr<padded_string> json_text;
+    Napi::TrackingPtr<parser> parser_;
+    Napi::TrackingPtr<element> document;
 
   public:
-    ParserAsyncWorker(Napi::Env env, shared_ptr<padded_string> text)
-        : AsyncWorker(env, "JSONAsyncWorker"), deferred(env), json_text(text), external_memory(0) {}
+    ParserAsyncWorker(Napi::Env env, Napi::TrackingPtr<padded_string> text)
+        : AsyncWorker(env, "JSONAsyncWorker"), deferred(env), json_text(text) {}
     virtual void Execute() override {
-      parser_ = make_shared<parser>();
       napi_env env = Env();
-      document = shared_ptr<element>(new element(parser_->parse(*json_text)),
-                                     [env, external_memory = this->external_memory](void *p) {
-                                       // Normally this should always get called on the main thread?
-                                       Napi::MemoryManagement::AdjustExternalMemory(env, -external_memory);
-                                       delete static_cast<element *>(p);
-                                     });
+      parser_ = Napi::MakeTracking<parser>(env);
+      // This needs https://github.com/simdjson/simdjson/issues/1017 for optimal solution
+      document = Napi::MakeTracking<element>(env, json_text->length() * 2, parser_->parse(*json_text));
     }
     virtual void OnOK() override {
       Napi::Env env = Env();
       auto instance = env.GetInstanceData<InstanceData>();
       element root = *document.get();
-      JSONElementContext context(json_text, parser_, document, root);
-      // This overreports memory to the GC
-      external_memory = json_text->length() * 2;
-      Napi::MemoryManagement::AdjustExternalMemory(env, external_memory);
+      JSONElementContext context(env, json_text, parser_, document, root);
       napi_value ctor_args = External<JSONElementContext>::New(env, &context);
       auto result = New(instance, root, context.store_json.get(), &ctor_args);
       deferred.Resolve(result);
@@ -39,7 +31,7 @@ Value JSON::ParseAsync(const CallbackInfo &info) {
 
   Napi::Env env(info.Env());
 
-  auto parser_ = make_shared<parser>();
+  auto parser_ = Napi::MakeTracking<parser>(env);
   auto json_text = GetString(info);
   auto worker = new ParserAsyncWorker(env, json_text);
 

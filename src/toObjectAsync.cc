@@ -46,7 +46,7 @@ Value JSON::ToObjectAsync(const CallbackInfo &info) {
 
   // The ToObjectAsync state is created here and it exists
   // as long as it sits on the queue
-  auto state = make_shared<ToObjectAsync::Context>(env, info.This());
+  auto state = Napi::MakeTracking<ToObjectAsync::Context>(env, 0, env, info.This());
   state->stack.emplace_back(root);
   ToObjectAsync(state, high_resolution_clock::now());
 
@@ -58,9 +58,9 @@ Value JSON::ToObjectAsync(const CallbackInfo &info) {
 
 // The actual implementation, called from the JS entry point
 // and the task queue loop, runs until it is allowed, keeps its
-// context in shared_ptr<ToObjectAsync::Context> state
+// context in Napi::TrackingPtr<ToObjectAsync::Context> state
 // (this is an iterative heterogenous tree traversal)
-void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resolution_clock::time_point start) {
+void JSON::ToObjectAsync(Napi::TrackingPtr<ToObjectAsync::Context> state, high_resolution_clock::time_point start) {
   Napi::Env env = state->env;
   auto &stack = state->stack;
 
@@ -120,9 +120,8 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
           Array array = previous->ref.Value().As<Array>();
           array.Set(previous->idx, result);
 #ifdef DEBUG_VERBOSE
-          printf("%.*s [%u] = %s\n",
-            (int)stack.size(), "                       ",
-            (unsigned)previous->idx, result.As<String>().Utf8Value().c_str());
+          printf("%.*s [%u] = %s\n", (int)stack.size(), "                       ", (unsigned)previous->idx,
+                 result.As<String>().Utf8Value().c_str());
 #endif
           break;
         }
@@ -131,9 +130,8 @@ void JSON::ToObjectAsync(shared_ptr<ToObjectAsync::Context> state, high_resoluti
           auto key = (*previous->iterator.object.idx).key.data();
           object.Set(key, result);
 #ifdef DEBUG_VERBOSE
-          printf("%.*s {%s} = %s\n",
-            (int)stack.size(), "                       ",
-            key, result.As<String>().Utf8Value().c_str());
+          printf("%.*s {%s} = %s\n", (int)stack.size(), "                       ", key,
+                 result.As<String>().Utf8Value().c_str());
 #endif
           break;
         }
