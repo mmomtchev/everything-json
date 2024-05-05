@@ -1,21 +1,25 @@
 // This script tries to find a publishing workflow with a dispatch trigger
 // in the Github Actions of the current project
 
-const exec = require('util').promisify(require('child_process').exec);
-const path = require('path');
-const { Octokit } = require('@octokit/core');
-
-const octokit = new Octokit({ auth: process.env.NODE_PRE_GYP_GITHUB_TOKEN });
-const package_json = require(path.resolve(__dirname, '..', 'package.json'));
-const pkg = {
-  repo: package_json.binary.hosting.repo.split('/')[1],
-  owner: package_json.binary.hosting.repo.split('/')[0]
-};
-const version = package_json.version;
-let workflowPublishId;
-const workflowPublishMatch = /publish/;
+import { exec as _exec } from 'node:child_process';
+import { promisify } from 'node:util';
+import * as path from 'node:path';
+import { promises as fs } from 'node:fs';
+import { Octokit } from '@octokit/core';
+import { fileURLToPath } from 'node:url';
+const exec = promisify(_exec);
 
 (async () => {
+  const octokit = new Octokit({ auth: process.env.NODE_PRE_GYP_GITHUB_TOKEN });
+  const package_json = JSON.parse(await fs.readFile(path.resolve(fileURLToPath(import.meta.url), '..', '..', 'package.json'), 'utf-8'));
+  const pkg = {
+    repo: package_json.binary.hosting.repo.split('/')[1],
+    owner: package_json.binary.hosting.repo.split('/')[0]
+  };
+  const version = package_json.version;
+  let workflowPublishId;
+  const workflowPublishMatch = /publish/;
+
   const branch = (await exec('git branch --show-current')).stdout.trim();
 
   process.stdout.write(`trying to find the publish workflow for ${pkg.owner}:${pkg.repo}...`);
