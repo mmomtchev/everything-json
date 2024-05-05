@@ -61,7 +61,7 @@ const exec = promisify(_exec);
     console.error('failed job', failedJob[0].name, failedStep[0].name);
     throw new Error('Github actions build failed');
   }
-  process.stdout.write('success');
+  process.stdout.write('success\n');
 })().catch((e) => {
   console.error(e);
   process.exit(1);
