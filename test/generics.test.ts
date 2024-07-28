@@ -40,7 +40,7 @@ describe('TypeScript generics', () => {
     assert.isBoolean<boolean>(boolean.get());
 
     const nothing = object.two;
-    assert.isNull<null>(nothing.get());
+    assert.isNull(nothing.get());
   });
 
   it('expand()', () => {
@@ -65,7 +65,7 @@ describe('TypeScript generics', () => {
     assert.isBoolean<boolean>(boolean);
 
     const nothing = object.two;
-    assert.isNull<null>(nothing);
+    assert.isNull(nothing);
   });
 
   it('path()', () => {
@@ -82,7 +82,7 @@ describe('TypeScript generics', () => {
     assert.isObject<Record<string, never>>(document.path('/object').path('/empty').toObject());
     assert.isString<string>(document.path('/0').toObject());
     assert.isBoolean<boolean>(document.path('/1').toObject());
-    assert.isNull<null>(document.path('/two').toObject());
+    assert.isNull(document.path('/two').toObject());
   });
 
   it('type()', () => {
@@ -124,7 +124,7 @@ describe('TypeScript generics', () => {
     assert.isBoolean<boolean>(boolean);
 
     const nothing = object.two;
-    assert.isNull<null>(nothing);
+    assert.isNull(nothing);
   });
 
   it('toObjectAsync()', (done) => {
@@ -150,7 +150,7 @@ describe('TypeScript generics', () => {
         assert.isBoolean<boolean>(boolean);
 
         const nothing = object.two;
-        assert.isNull<null>(nothing);
+        assert.isNull(nothing);
         done();
       })
       .catch(done);
