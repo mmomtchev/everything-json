@@ -7,6 +7,7 @@
 [![codecov](https://codecov.io/gh/mmomtchev/everything-json/graph/badge.svg?token=NNGNMBL0XN)](https://codecov.io/gh/mmomtchev/everything-json)
 [![npm](https://img.shields.io/npm/v/everything-json)](https://www.npmjs.com/package/everything-json)
 [![Test npm package](https://github.com/mmomtchev/everything-json/actions/workflows/test-package.yml/badge.svg)](https://github.com/mmomtchev/everything-json/actions/workflows/test-package.yml)
+<img src="https://raw.githubusercontent.com/mmomtchev/mmomtchev/refs/heads/master/combat-medal.svg" alt="Combat proven on the backend during a DoS attack" width="25">
 
 ![Everything Bagel](https://raw.githubusercontent.com/mmomtchev/everything-json/main/doc/everything-bagel.png)
 
