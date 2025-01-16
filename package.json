@@ -15,7 +15,7 @@
     "postversion": "git push && git push --tags && node ./scripts/publish-packages.mjs",
     "postpublish": "gh workflow run test-package.yml -F version=$npm_package_version",
     "doc": "documentation build -f md lib/index.d.ts > doc/API.md",
-    "gcov": "mkdir -p coverage && cd coverage && gcov -o ../build/Debug/obj.target/everything-json/src ../src/*",
+    "gcov": "mkdir -p coverage && cd coverage && gcov -o ../build/Debug/obj.target/everything-json/src ../src/*.c*",
     "lcov": "npx c8 report --reporter=text-lcov > coverage/tests.lcov",
     "codecov": "cd coverage && curl -s https://codecov.io/bash | bash"
   },
