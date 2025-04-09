@@ -1,5 +1,10 @@
 # Changelog
 
+##
+
+ - Drop Ubuntu 20.04 and macOS 11/12 support
+ - Drop Node.js 16 support
+
 ## [1.2.0] 2024-05-05
 
  - Implement a solution to [#110](https://github.com/mmomtchev/everything-json/issues/110), report allocated memory to the GC
