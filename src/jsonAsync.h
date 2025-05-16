@@ -112,7 +112,7 @@ namespace Napi {
 template <typename T, typename... ARGS>
 inline std::shared_ptr<T> MakeTracking(Env env, int64_t extra_size, ARGS &&...args) {
   auto instance = env.GetInstanceData<InstanceData>();
-  std::lock_guard{instance->lock};
+  std::lock_guard guard{instance->lock};
   instance->pendingExternalMemoryAdjustment += extra_size + sizeof(T);
   return std::shared_ptr<T>{new T(std::forward<ARGS>(args)...), [instance, extra_size](void *p) {
                               std::lock_guard{instance->lock};
@@ -122,7 +122,7 @@ inline std::shared_ptr<T> MakeTracking(Env env, int64_t extra_size, ARGS &&...ar
 }
 template <typename T> inline std::shared_ptr<T> MakeTracking(Env env) {
   auto instance = env.GetInstanceData<InstanceData>();
-  std::lock_guard{instance->lock};
+  std::lock_guard guard{instance->lock};
   instance->pendingExternalMemoryAdjustment += sizeof(T);
   return std::shared_ptr<T>{new T, [instance](void *p) {
                               std::lock_guard{instance->lock};
