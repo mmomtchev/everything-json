@@ -27,7 +27,7 @@ void JSON::ProcessRunQueue(uv_async_t *handle) {
 
 void JSON::ProcessExternalMemory(Napi::Env env) {
   auto instance = env.GetInstanceData<InstanceData>();
-  std::lock_guard{instance->lock};
+  std::lock_guard guard{instance->lock};
   if (instance->pendingExternalMemoryAdjustment != 0) {
     Napi::MemoryManagement::AdjustExternalMemory(env, instance->pendingExternalMemoryAdjustment);
     instance->pendingExternalMemoryAdjustment = 0;
