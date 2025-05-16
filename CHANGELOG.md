@@ -1,7 +1,8 @@
 # Changelog
 
-##
+### [1.2.1]
 
+ - [#223](https://github.com/mmomtchev/everything-json/pull/223), compatibility with `nodenext` resolution mode in TypeScript
  - Drop Ubuntu 20.04 and macOS 11/12 support
  - Drop Node.js 16 support
 
