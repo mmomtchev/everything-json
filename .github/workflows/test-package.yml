@@ -70,11 +70,11 @@ jobs:
         run: echo 'MOCHA_NODE_OPTIONS=--node-option=expose-gc' >> $GITHUB_ENV
         if: matrix.node-version != '24.x'
       - name: Run the unit tests
+        shell: bash
         run: |
           cd test
-          npx mocha --require ts-node/register --types mocha --reporter=tap ${{env.MOCHA_NODE_OPTIONS}} *.test.ts *.standalone.*js
-        env:
-          TS_NODE_COMPILER_OPTIONS: '{ "strictNullChecks": true, "noEmit": true, "types": [ "node", "mocha", "chai", "chai-as-promised" ] }'
+          echo '{"compilerOptions":{"moduleResolution":"node","strict":true,"strictNullChecks":true,"target":"ES2015","esModuleInterop":true}}' > tsconfig.json
+          npx mocha --require ts-node/register --extension ts --reporter=tap ${{env.MOCHA_NODE_OPTIONS}} *.test.ts *.standalone.*js
 
 
   test_npm_rebuild:
@@ -130,8 +130,8 @@ jobs:
         run: echo 'MOCHA_NODE_OPTIONS=--node-option=expose-gc' >> $GITHUB_ENV
         if: matrix.node-version != '24.x'
       - name: Run the unit tests
+        shell: bash
         run: |
           cd test
-          npx mocha --require ts-node/register --types mocha --reporter=tap ${{env.MOCHA_NODE_OPTIONS}} *.test.ts *.standalone.*js
-        env:
-          TS_NODE_COMPILER_OPTIONS: '{ "strictNullChecks": true, "noEmit": true, "types": [ "node", "mocha", "chai", "chai-as-promised" ] }'
+          echo '{"compilerOptions":{"moduleResolution":"node","strict":true,"strictNullChecks":true,"target":"ES2015","esModuleInterop":true}}' > tsconfig.json
+          npx mocha --require ts-node/register --extension ts --reporter=tap ${{env.MOCHA_NODE_OPTIONS}} *.test.ts *.standalone.*js
