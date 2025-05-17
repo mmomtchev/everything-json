@@ -29,13 +29,14 @@ jobs:
       fail-fast: false
       matrix:
         platform: [ubuntu-latest, macos-13, macos-14, windows-latest]
+        node-version: [18, 24]
 
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js 18.x
+      - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: 18.x
+          node-version: ${{ matrix.node-version }}
       - uses: actions/setup-python@v5
         with:
           python-version: 3.11

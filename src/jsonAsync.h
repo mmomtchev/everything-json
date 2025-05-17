@@ -6,9 +6,9 @@
 #include <chrono>
 #include <functional>
 #include <map>
+#include <mutex>
 #include <queue>
 #include <string>
-#include <mutex>
 
 #define NAPI_VERSION 8
 #include <napi.h>
@@ -112,11 +112,12 @@ namespace Napi {
 template <typename T, typename... ARGS>
 inline std::shared_ptr<T> MakeTracking(Env env, int64_t extra_size, ARGS &&...args) {
   auto instance = env.GetInstanceData<InstanceData>();
+  int64_t adjust = extra_size + sizeof(T);
   std::lock_guard guard{instance->lock};
-  instance->pendingExternalMemoryAdjustment += extra_size + sizeof(T);
-  return std::shared_ptr<T>{new T(std::forward<ARGS>(args)...), [instance, extra_size](void *p) {
+  instance->pendingExternalMemoryAdjustment += adjust;
+  return std::shared_ptr<T>{new T(std::forward<ARGS>(args)...), [instance, adjust](void *p) {
                               std::lock_guard guard{instance->lock};
-                              instance->pendingExternalMemoryAdjustment -= extra_size + sizeof(T);
+                              instance->pendingExternalMemoryAdjustment -= adjust;
                               delete static_cast<T *>(p);
                             }};
 }
