@@ -60,10 +60,18 @@ jobs:
       - name: Install everything-json from npm
         run: npm install ${{ inputs.package }}
         shell: bash
+      - name: Node options (24)
+        shell: bash
+        run: echo 'MOCHA_NODE_OPTIONS=--node-option=no-experimental-strip-types --node-option=expose-gc' >> $GITHUB_ENV
+        if: matrix.node-version == '24.x'
+      - name: Node options (<24)
+        shell: bash
+        run: echo 'MOCHA_NODE_OPTIONS=--node-option=expose-gc' >> $GITHUB_ENV
+        if: matrix.node-version != '24.x'
       - name: Run the unit tests
         run: |
           cd test
-          npx mocha --require ts-node/register --types mocha --reporter=tap --v8-expose-gc *.test.ts *.standalone.*js
+          npx mocha --require ts-node/register --types mocha --reporter=tap ${{env.MOCHA_NODE_OPTIONS}} *.test.ts *.standalone.*js
         env:
           TS_NODE_COMPILER_OPTIONS: '{ "strictNullChecks": true, "noEmit": true, "types": [ "node", "mocha", "chai", "chai-as-promised" ] }'
 
@@ -111,9 +119,17 @@ jobs:
           [[ '${{ matrix.platform }}' =~ 'windows' ]] && subst M: `pwd` && cd M:/
           npm install ${{ inputs.package }} --build-from-source
         shell: bash
+      - name: Node options (24)
+        shell: bash
+        run: echo 'MOCHA_NODE_OPTIONS=--node-option=no-experimental-strip-types --node-option=expose-gc' >> $GITHUB_ENV
+        if: matrix.node-version == '24.x'
+      - name: Node options (<24)
+        shell: bash
+        run: echo 'MOCHA_NODE_OPTIONS=--node-option=expose-gc' >> $GITHUB_ENV
+        if: matrix.node-version != '24.x'
       - name: Run the unit tests
         run: |
           cd test
-          npx mocha --require ts-node/register --types mocha --reporter=tap --v8-expose-gc *.test.ts *.standalone.*js
+          npx mocha --require ts-node/register --types mocha --reporter=tap ${{env.MOCHA_NODE_OPTIONS}} *.test.ts *.standalone.*js
         env:
           TS_NODE_COMPILER_OPTIONS: '{ "strictNullChecks": true, "noEmit": true, "types": [ "node", "mocha", "chai", "chai-as-promised" ] }'
