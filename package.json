@@ -20,7 +20,7 @@
     "codecov": "cd coverage && curl -s https://codecov.io/bash | bash"
   },
   "name": "everything-json",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "JSON Async",
   "repository": {
     "type": "git",
