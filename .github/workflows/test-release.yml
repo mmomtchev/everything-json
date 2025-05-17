@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         platform: [ubuntu-22.04, macos-13, macos-14, windows-2019, windows-2022]
-        node-version: ["18.17", 18.x, 20.x, 22.x, 23.x]
+        node-version: ["18.17", 18.x, 20.x, 22.x, 24.x]
 
     steps:
       - uses: actions/checkout@v4
