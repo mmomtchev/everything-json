@@ -48,7 +48,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.27.0",
-    "@octokit/core": "^6.0.1",
+    "@octokit/core": "^7.0.2",
     "@types/chai": "^4.3.11",
     "@types/geojson": "^7946.0.13",
     "@types/mocha": "^10.0.6",
