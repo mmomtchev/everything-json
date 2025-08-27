@@ -56,7 +56,7 @@
     "@typescript-eslint/parser": "^8.0.0",
     "benny": "^3.7.1",
     "c8": "^10.1.0",
-    "chai": "^4.4.0",
+    "chai": "^6.0.1",
     "documentation": "^14.0.2",
     "eslint": "^9.8.0",
     "eslint-plugin-mocha": "^11.0.0",
