@@ -57,7 +57,7 @@ jobs:
         run: mv git-checkout/test .
       - name: Install dependencies
         run: |
-          npm i chai@4.4.1 chai-spies chai-as-promised mocha typescript ts-node tsconfig-paths @types/chai@4.3.11 @types/chai-as-promised @types/mocha @types/node @types/geojson piscina
+          npm i chai@4.4.1 chai-spies chai-as-promised mocha typescript tsx tsconfig-paths @types/chai@4.3.11 @types/chai-as-promised @types/mocha @types/node @types/geojson piscina
       - name: Install everything-json from npm
         run: npm install ${{ inputs.package }}
         shell: bash
@@ -66,7 +66,7 @@ jobs:
         run: |
           cd test
           echo '{"compilerOptions":{"moduleResolution":"node","strict":true,"strictNullChecks":true,"target":"ES2015","esModuleInterop":true}}' > tsconfig.json
-          npx mocha --require ts-node/register --extension ts --reporter=tap --node-option=expose-gc *.test.ts *.standalone.*js
+          npx mocha --require tsx --extension ts --reporter=tap --node-option=expose-gc *.test.ts *.standalone.*js
 
 
   test_npm_rebuild:
@@ -106,7 +106,7 @@ jobs:
         run: mv git-checkout/test .
       - name: Install dependencies
         run: |
-          npm i chai@4.4.1 chai-spies chai-as-promised mocha typescript ts-node tsconfig-paths @types/chai@4.3.11 @types/chai-as-promised @types/mocha @types/node @types/geojson piscina
+          npm i chai@4.4.1 chai-spies chai-as-promised mocha typescript tsx tsconfig-paths @types/chai@4.3.11 @types/chai-as-promised @types/mocha @types/node @types/geojson piscina
       - name: Install everything-json from npm
         run: |
           [[ '${{ matrix.platform }}' =~ 'windows' ]] && subst M: `pwd` && cd M:/
@@ -117,4 +117,4 @@ jobs:
         run: |
           cd test
           echo '{"compilerOptions":{"moduleResolution":"node","strict":true,"strictNullChecks":true,"target":"ES2015","esModuleInterop":true}}' > tsconfig.json
-          npx mocha --require ts-node/register --extension ts --reporter=tap --node-option=expose-gc *.test.ts *.standalone.*js
+          npx mocha --require tsx --extension ts --reporter=tap --node-option=expose-gc *.test.ts *.standalone.*js
