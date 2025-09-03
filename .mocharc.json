@@ -1,0 +1,10 @@
+{
+  "spec": "test/*.test.*s",
+  "require": [
+    "tsx",
+    "tsconfig-paths/register",
+    "./test/mocha.init.ts"
+  ],
+  "timeout": 4000,
+  "v8-expose-gc": true
+}
