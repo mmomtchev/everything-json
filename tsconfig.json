@@ -5,10 +5,14 @@
     "strictNullChecks": true,
     "target": "ES2015",
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "paths": {
       "everything-json": [
         "."
       ]
     }
-  }
+  },
+  "include": [
+    "test"
+  ]
 }

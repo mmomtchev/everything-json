@@ -66,6 +66,7 @@ jobs:
         run: |
           cd test
           echo '{"compilerOptions":{"moduleResolution":"node","strict":true,"strictNullChecks":true,"target":"ES2015","esModuleInterop":true}}' > tsconfig.json
+          npx tsc --noEmit
           npx mocha --require tsx --extension ts --reporter=tap --node-option=expose-gc *.test.ts *.standalone.*js
 
 
@@ -117,4 +118,5 @@ jobs:
         run: |
           cd test
           echo '{"compilerOptions":{"moduleResolution":"node","strict":true,"strictNullChecks":true,"target":"ES2015","esModuleInterop":true}}' > tsconfig.json
+          npx tsc --noEmit
           npx mocha --require tsx --extension ts --reporter=tap --node-option=expose-gc *.test.ts *.standalone.*js
