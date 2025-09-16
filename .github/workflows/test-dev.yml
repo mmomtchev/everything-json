@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Use Node.js 22.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22.x
       - run: npm install
@@ -34,7 +34,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node-version }}
       - uses: actions/setup-python@v6
@@ -56,7 +56,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Use Node.js 18.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 18.x
       - run: npm install --ignore-scripts
@@ -70,7 +70,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Use Node.js 18.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 18.x
       - run: npm install --ignore-scripts
@@ -88,7 +88,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Use Node.js 18.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 18.x
       - run: npm install --ignore-scripts
