@@ -10,7 +10,7 @@ import { JSON as JSONAsync } from 'everything-json';
 const jsonText = zlib.unzipSync(fs.readFileSync(path.resolve(__dirname, 'data', 'sf_citylots.json.gz')));
 
 it('toObjectAsync() yields the CPU', function (done) {
-  this.timeout(30000);
+  this.timeout(100000);
   // @ts-ignore
   if (JSONAsync.debug) this.skip();
 

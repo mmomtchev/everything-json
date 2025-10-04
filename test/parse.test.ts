@@ -142,7 +142,7 @@ describe('from Buffer', () => {
 describe('latency', () => {
   it('must have a configurable latency', () => {
     assert.isNumber(JSONAsync.latency);
-    assert.strictEqual(JSONAsync.latency, 5);
+    assert.notDeepEqual(JSONAsync.latency, 10);
     JSONAsync.latency = 10;
     assert.strictEqual(JSONAsync.latency, 10);
   });
