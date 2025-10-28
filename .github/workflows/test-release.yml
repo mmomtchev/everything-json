@@ -55,7 +55,7 @@ jobs:
           npm pack
           echo package=`echo everything-json-*.tgz` >> $GITHUB_OUTPUT
       - name: Upload tarball
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ steps.pack.outputs.package }}
           path: ${{ steps.pack.outputs.package }}
