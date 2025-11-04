@@ -43,7 +43,7 @@ jobs:
         with:
           python-version: 3.11
       - name: Download the package
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: ${{ inputs.package }}
         if: inputs.download
@@ -93,7 +93,7 @@ jobs:
         with:
           python-version: 3.11
       - name: Download the package
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: ${{ inputs.package }}
         if: inputs.download
