@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.3.0]
+
+ - Drop macOS <15 support
+
 ### [1.2.1] 2025-05-17
 
  - Update `simdjson` to 3.12.3
