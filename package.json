@@ -52,7 +52,7 @@
     "@types/chai": "^4.3.11",
     "@types/geojson": "^7946.0.13",
     "@types/mocha": "^10.0.6",
-    "@types/node": "^24.3.1",
+    "@types/node": "^25.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "benny": "^3.7.1",
