@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
-    "@eslint/js": "^9.27.0",
+    "@eslint/js": "^10.0.1",
     "@octokit/core": "^7.0.2",
     "@types/chai": "^4.3.11",
     "@types/geojson": "^7946.0.13",
@@ -59,7 +59,7 @@
     "c8": "^10.1.0",
     "chai": "^4.4.0",
     "documentation": "^14.0.2",
-    "eslint": "^9.8.0",
+    "eslint": "^10.0.0",
     "eslint-plugin-mocha": "^11.0.0",
     "globals": "^17.0.0",
     "mocha": "github:mmomtchev/mocha#mmom",
