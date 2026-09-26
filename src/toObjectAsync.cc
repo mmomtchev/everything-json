@@ -4,7 +4,7 @@ namespace ToObjectAsync {
 
 Element::Element(const element &_item) : item(_item), iterator({{}}) {}
 Context::Context(Napi::Env _env, Napi::Value _self)
-    : env(_env), self(Persistent(_self)), top(), stack(), deferred(env) {}
+    : env(_env), self(Persistent(_self)), top(), stack(), deferred(env), async_context(env, "JSONToObjectAsyncWorker") {}
 
 } // namespace ToObjectAsync
 
@@ -182,6 +182,7 @@ void JSON::ToObjectAsync(std::shared_ptr<ToObjectAsync::Context> state, high_res
 
   if (!previous) {
     assert(!state->top.IsEmpty());
+    Napi::CallbackScope callback_scope(env, (napi_async_context)(state->async_context));
     state->deferred.Resolve(state->top.Value());
   } else {
     // Put us back in the line
