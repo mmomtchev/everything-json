@@ -176,6 +176,7 @@ void JSON::ToObjectAsync(std::shared_ptr<ToObjectAsync::Context> state, high_res
       // recursed our way back to the top
     } while (previous && CanRun(start));
   } catch (const exception &err) {
+    Napi::CallbackScope callback_scope(env, (napi_async_context)(state->async_context));
     state->deferred.Reject(Error::New(env, err.what()).Value());
     return;
   }
