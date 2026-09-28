@@ -48,7 +48,7 @@ jobs:
         if: inputs.download
       - name: Create package.json
         run: npm init --yes
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           path: git-checkout
       - name: Set up the unit tests
@@ -98,7 +98,7 @@ jobs:
         if: inputs.download
       - name: Create package.json
         run: npm init --yes
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           path: git-checkout
       - name: Set up the unit tests
