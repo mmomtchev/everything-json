@@ -1,7 +1,12 @@
 {
   "compilerOptions": {
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
+    "module": "node16",
     "strict": true,
+    "types": [
+      "node",
+      "mocha"
+    ],
     "strictNullChecks": true,
     "target": "ES2015",
     "esModuleInterop": true,
