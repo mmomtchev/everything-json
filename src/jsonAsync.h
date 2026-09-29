@@ -89,6 +89,7 @@ struct Context {
   // (it is a vector because we need to access the last two elements)
   vector<Element> stack;
   Promise::Deferred deferred;
+  Napi::AsyncContext async_context;
   Context(Napi::Env, Napi::Value);
 };
 
