@@ -6,10 +6,11 @@ Value JSON::ParseAsync(const CallbackInfo &info) {
     std::shared_ptr<padded_string> json_text;
     std::shared_ptr<parser> parser_;
     std::shared_ptr<element> document;
+    Napi::AsyncContext async_context;
 
   public:
     ParserAsyncWorker(Napi::Env env, std::shared_ptr<padded_string> text)
-        : AsyncWorker(env, "JSONAsyncWorker"), deferred(env), json_text(text) {}
+        : AsyncWorker(env, "JSONAsyncWorker"), deferred(env), json_text(text), async_context(env, "JSONAsyncWorker") {}
     virtual void Execute() override {
       napi_env env = Env();
       parser_ = Napi::MakeTracking<parser>(env);
@@ -18,6 +19,7 @@ Value JSON::ParseAsync(const CallbackInfo &info) {
     }
     virtual void OnOK() override {
       Napi::Env env = Env();
+      Napi::CallbackScope callback_scope(env, (napi_async_context)async_context);
       auto instance = env.GetInstanceData<InstanceData>();
       element root = *document.get();
       JSONElementContext context(env, json_text, parser_, document, root);
@@ -25,7 +27,11 @@ Value JSON::ParseAsync(const CallbackInfo &info) {
       auto result = New(instance, root, context.store_json.get(), &ctor_args);
       deferred.Resolve(result);
     }
-    virtual void OnError(const Napi::Error &e) override { deferred.Reject(e.Value()); }
+    virtual void OnError(const Napi::Error &e) override {
+      Napi::Env env = Env();
+      Napi::CallbackScope callback_scope(env, (napi_async_context)async_context);
+      deferred.Reject(e.Value());
+    }
     Promise GetPromise() { return deferred.Promise(); }
   };
 
